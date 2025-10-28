@@ -11,7 +11,7 @@ using PasswordManager.API;
 namespace PasswordManager.API.Migrations
 {
     [DbContext(typeof(KeepassDBContext))]
-    [Migration("20251028112848_InitialCreate")]
+    [Migration("20251028134259_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
