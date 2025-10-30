@@ -3,14 +3,14 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using PasswordManager.API;
+using PasswordManager.API.Context;
 
 #nullable disable
 
 namespace PasswordManager.API.Migrations
 {
-    [DbContext(typeof(KeepassDBContext))]
-    partial class KeepassDBContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(PasswordManagerDBContext))]
+    partial class PasswordManagerDBContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -19,10 +19,10 @@ namespace PasswordManager.API.Migrations
 
             modelBuilder.Entity("AppUserVault", b =>
                 {
-                    b.Property<string>("SharedUsersIdentifier")
+                    b.Property<Guid>("SharedUsersIdentifier")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SharedVaultsIdentifier")
+                    b.Property<Guid>("SharedVaultsIdentifier")
                         .HasColumnType("TEXT");
 
                     b.HasKey("SharedUsersIdentifier", "SharedVaultsIdentifier");
@@ -32,9 +32,10 @@ namespace PasswordManager.API.Migrations
                     b.ToTable("AppUserVault");
                 });
 
-            modelBuilder.Entity("PasswordManager.API.AppUser", b =>
+            modelBuilder.Entity("PasswordManager.API.Objects.AppUser", b =>
                 {
-                    b.Property<string>("Identifier")
+                    b.Property<Guid>("Identifier")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("entraId")
@@ -43,18 +44,25 @@ namespace PasswordManager.API.Migrations
                     b.HasKey("Identifier");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Identifier = new Guid("00000000-0000-0000-0000-000000000001"),
+                            entraId = new Guid("00000000-0000-0000-0000-000000000001")
+                        });
                 });
 
-            modelBuilder.Entity("PasswordManager.API.Vault", b =>
+            modelBuilder.Entity("PasswordManager.API.Objects.Vault", b =>
                 {
-                    b.Property<string>("Identifier")
+                    b.Property<Guid>("Identifier")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("CreatorIdentifier")
-                        .IsRequired()
+                    b.Property<Guid>("CreatorIdentifier")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("LastUpdatedAt")
@@ -62,6 +70,7 @@ namespace PasswordManager.API.Migrations
 
                     b.Property<string>("MasterSalt")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
@@ -71,14 +80,17 @@ namespace PasswordManager.API.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
+                        .HasMaxLength(512)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Salt")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("encryptKey")
                         .IsRequired()
+                        .HasMaxLength(512)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("isShared")
@@ -92,33 +104,36 @@ namespace PasswordManager.API.Migrations
                     b.ToTable("Vaults");
                 });
 
-            modelBuilder.Entity("PasswordManager.API.VaultEntry", b =>
+            modelBuilder.Entity("PasswordManager.API.Objects.VaultEntry", b =>
                 {
-                    b.Property<int>("Identifier")
+                    b.Property<Guid>("Identifier")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("CreatorIdentifier")
-                        .IsRequired()
+                    b.Property<Guid>("CreatorIdentifier")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CypherData")
                         .IsRequired()
+                        .HasMaxLength(2048)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CypherPassword")
                         .IsRequired()
+                        .HasMaxLength(512)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("IVData")
                         .IsRequired()
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("IVPassword")
                         .IsRequired()
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("LastUpdatedAt")
@@ -126,14 +141,15 @@ namespace PasswordManager.API.Migrations
 
                     b.Property<string>("TagData")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TagPasswords")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("VaultIdentifier")
-                        .IsRequired()
+                    b.Property<Guid>("VaultIdentifier")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Identifier");
@@ -147,39 +163,39 @@ namespace PasswordManager.API.Migrations
 
             modelBuilder.Entity("AppUserVault", b =>
                 {
-                    b.HasOne("PasswordManager.API.AppUser", null)
+                    b.HasOne("PasswordManager.API.Objects.AppUser", null)
                         .WithMany()
                         .HasForeignKey("SharedUsersIdentifier")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PasswordManager.API.Vault", null)
+                    b.HasOne("PasswordManager.API.Objects.Vault", null)
                         .WithMany()
                         .HasForeignKey("SharedVaultsIdentifier")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PasswordManager.API.Vault", b =>
+            modelBuilder.Entity("PasswordManager.API.Objects.Vault", b =>
                 {
-                    b.HasOne("PasswordManager.API.AppUser", "Creator")
+                    b.HasOne("PasswordManager.API.Objects.AppUser", "Creator")
                         .WithMany("Vaults")
                         .HasForeignKey("CreatorIdentifier")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("PasswordManager.API.VaultEntry", b =>
+            modelBuilder.Entity("PasswordManager.API.Objects.VaultEntry", b =>
                 {
-                    b.HasOne("PasswordManager.API.AppUser", "Creator")
+                    b.HasOne("PasswordManager.API.Objects.AppUser", "Creator")
                         .WithMany("Entries")
                         .HasForeignKey("CreatorIdentifier")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PasswordManager.API.Vault", "Vault")
+                    b.HasOne("PasswordManager.API.Objects.Vault", "Vault")
                         .WithMany("Entries")
                         .HasForeignKey("VaultIdentifier")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -190,14 +206,14 @@ namespace PasswordManager.API.Migrations
                     b.Navigation("Vault");
                 });
 
-            modelBuilder.Entity("PasswordManager.API.AppUser", b =>
+            modelBuilder.Entity("PasswordManager.API.Objects.AppUser", b =>
                 {
                     b.Navigation("Entries");
 
                     b.Navigation("Vaults");
                 });
 
-            modelBuilder.Entity("PasswordManager.API.Vault", b =>
+            modelBuilder.Entity("PasswordManager.API.Objects.Vault", b =>
                 {
                     b.Navigation("Entries");
                 });

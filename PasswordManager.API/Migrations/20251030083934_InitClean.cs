@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PasswordManager.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitClean : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,7 +15,7 @@ namespace PasswordManager.API.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Identifier = table.Column<string>(type: "TEXT", nullable: false),
+                    Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     entraId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -27,16 +27,16 @@ namespace PasswordManager.API.Migrations
                 name: "Vaults",
                 columns: table => new
                 {
-                    Identifier = table.Column<string>(type: "TEXT", nullable: false),
+                    Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    CreatorIdentifier = table.Column<string>(type: "TEXT", nullable: false),
+                    CreatorIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastUpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     isShared = table.Column<bool>(type: "INTEGER", nullable: false),
-                    MasterSalt = table.Column<string>(type: "TEXT", nullable: false),
-                    Salt = table.Column<string>(type: "TEXT", nullable: false),
-                    encryptKey = table.Column<string>(type: "TEXT", nullable: false),
-                    Password = table.Column<string>(type: "TEXT", nullable: false)
+                    MasterSalt = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    Salt = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    encryptKey = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false),
+                    Password = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,15 +46,15 @@ namespace PasswordManager.API.Migrations
                         column: x => x.CreatorIdentifier,
                         principalTable: "Users",
                         principalColumn: "Identifier",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
                 name: "AppUserVault",
                 columns: table => new
                 {
-                    SharedUsersIdentifier = table.Column<string>(type: "TEXT", nullable: false),
-                    SharedVaultsIdentifier = table.Column<string>(type: "TEXT", nullable: false)
+                    SharedUsersIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    SharedVaultsIdentifier = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -77,18 +77,17 @@ namespace PasswordManager.API.Migrations
                 name: "VaultEntries",
                 columns: table => new
                 {
-                    Identifier = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VaultIdentifier = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatorIdentifier = table.Column<string>(type: "TEXT", nullable: false),
+                    Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    VaultIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CreatorIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastUpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CypherPassword = table.Column<string>(type: "TEXT", nullable: false),
-                    CypherData = table.Column<string>(type: "TEXT", nullable: false),
-                    TagPasswords = table.Column<string>(type: "TEXT", nullable: false),
-                    TagData = table.Column<string>(type: "TEXT", nullable: false),
-                    IVPassword = table.Column<string>(type: "TEXT", nullable: false),
-                    IVData = table.Column<string>(type: "TEXT", nullable: false)
+                    CypherPassword = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false),
+                    CypherData = table.Column<string>(type: "TEXT", maxLength: 2048, nullable: false),
+                    TagPasswords = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    TagData = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    IVPassword = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
+                    IVData = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -98,7 +97,7 @@ namespace PasswordManager.API.Migrations
                         column: x => x.CreatorIdentifier,
                         principalTable: "Users",
                         principalColumn: "Identifier",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_VaultEntries_Vaults_VaultIdentifier",
                         column: x => x.VaultIdentifier,
@@ -106,6 +105,11 @@ namespace PasswordManager.API.Migrations
                         principalColumn: "Identifier",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Identifier", "entraId" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new Guid("00000000-0000-0000-0000-000000000001") });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AppUserVault_SharedVaultsIdentifier",
