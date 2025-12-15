@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿/*
+using Microsoft.EntityFrameworkCore;
 using PasswordManager.API.Context;
 using PasswordManager.API.Objects;
 using PasswordManager.API.Repositories.Interfaces;
@@ -11,12 +12,12 @@ namespace PasswordManager.API.Repositories
     {
         private readonly PasswordManagerDBContext _context;
 
-        public VaultRepository(PasswordManagerDBContext context)
-        {
-            _context = context;
-        }
+        // public VaultRepository(PasswordManagerDBContext context)
+        // {
+            // _context = context;
+        // }
 
-        // Retourne tous les coffres existants
+        //Retourne tous les coffres existants
         public async Task<IEnumerable<Vault>> GetAllAsync()
         {
             return await _context.Vaults.ToListAsync();
@@ -25,7 +26,7 @@ namespace PasswordManager.API.Repositories
         // Recherche un coffre par son identifiant GUID
         public async Task<Vault?> GetByIdAsync(Guid id)
         {
-            return await _context.Vaults.FirstOrDefaultAsync(v => v.Identifier == id);
+            //return await _context.Vaults.FirstOrDefaultAsync(v => v.Identifier == id);
         }
 
         // Ajoute un nouveau coffre dans la base
@@ -55,3 +56,4 @@ namespace PasswordManager.API.Repositories
         }
     }
 }
+*/

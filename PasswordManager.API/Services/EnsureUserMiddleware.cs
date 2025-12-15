@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Microsoft.Graph;
 using PasswordManager.API;
 using Microsoft.Extensions.Logging;
+using PasswordManager.API.Objects;
 
 
 namespace PasswordManager.API.Services;
