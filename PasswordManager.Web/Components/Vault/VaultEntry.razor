@@ -5,6 +5,7 @@
             <i class="fa-solid fa-ellipsis-vertical"></i>
         </button>
     </div>
+
     @if (showMenu)
     {
         <div class="vaultMenu">
@@ -43,30 +44,28 @@
     [Parameter] public string Category { get; set; } = "Default";
     [Parameter] public EventCallback OnDelete { get; set; }
 
+    private bool showMenu = false;
 
-    string MaskedPassword => new string('•', Password?.Length ?? 8);
-    bool showMenu = false;
+    private string MaskedPassword =>
+        new string('•', Password?.Length > 0 ? Password.Length : 8);
 
-    void ToggleMenu()
+    private void ToggleMenu()
     {
-        Console.WriteLine("ToggleMenu() appelé, showMenu = " + showMenu);
         showMenu = !showMenu;
     }
 
-    // 🟡 Ici on associe une icône selon la catégorie
-    string CategoryIcon =>
+    private string CategoryIcon =>
         Category?.ToLower() switch
         {
             "personnel" => "fa-solid fa-lock",
             "partagé" => "fa-solid fa-users",
-            _ => "fa-solid fa-tag" // default
+            _ => "fa-solid fa-tag"
         };
 
-    async Task Copy(string text)
+    private async Task Copy(string text)
     {
-        Console.WriteLine("cliqué");
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
 
-    [Inject] IJSRuntime JS { get; set; }
+    [Inject] IJSRuntime JS { get; set; } = default!;
 }

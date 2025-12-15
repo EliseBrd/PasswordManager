@@ -1,5 +1,6 @@
 ﻿.vaultCard {
-    width: 400px;
+    width: 100%;
+    max-width: 400px;
     padding: 16px 25px;
     border-radius: 20px;
     background: white;
@@ -27,6 +28,7 @@
     font-size: 25px;
     font-weight: 400;
 }
+
 .vaultHeader .menuBtn {
     color: #b7b7b7;
 }
@@ -48,6 +50,7 @@
     cursor: pointer;
     color: #777;
 }
+
 .vaultFooter {
     display: flex;
     align-items: center;
@@ -77,6 +80,7 @@
     cursor: pointer;
     font-size: 14px;
 }
+
 .vaultMenu .deleteBtn:hover {
     color: #c72e2e;
 }

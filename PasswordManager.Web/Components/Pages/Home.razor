@@ -1,11 +1,7 @@
 ﻿@page "/"
 @using PasswordManager.Web.Components.Vault
 
-<PageTitle>Home</PageTitle>
-
-<h1 class="titleHome">Passwords</h1>
-
-<div class="listeVaults">
+@* <div class="listeVaults">
     <VaultCard Title="Instagram"
                Username="john.doe@gmail.com"
                Password="SuperSecret123!"
@@ -15,6 +11,44 @@
                Username="henry.podico@gmail.com"
                Password="P@ssword2024"
                Category="Personnel" />
-</div>
+</div> *@
+<VaultList Vaults="vaults" />
+
+@code {
+    private List<VaultList.VaultModel> vaults = new()
+    {
+        new VaultList.VaultModel
+        {
+            Id = 1,
+            Name = "Famille",
+            Category = "Personnel"
+        },
+        new VaultList.VaultModel
+        {
+            Id = 2,
+            Name = "Coffre secret",
+            Category = "Partagé"
+        },
+        new VaultList.VaultModel
+        {
+            Id = 2,
+            Name = "Les copains",
+            Category = "Partagé"
+        },
+        new VaultList.VaultModel
+        {
+            Id = 2,
+            Name = "bebous",
+            Category = "Partagé"
+        },
+        new VaultList.VaultModel
+        {
+            Id = 2,
+            Name = "Crédit mutuel",
+            Category = "Personnel"
+        }
+    };
+}
+
 
 
