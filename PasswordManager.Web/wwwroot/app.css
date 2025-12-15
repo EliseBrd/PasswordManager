@@ -731,19 +731,24 @@ input {
     position: relative;
 }
 
-    .password-strength .strength-bar {
-        height: 100%;
-        width: 20%;
-        border-radius: 4px;
-        background-color: red;
-        transition: width 0.3s, background-color 0.3s;
-    }
+.password-strength .strength-bar {
+    height: 100%;
+    width: 20%;
+    border-radius: 4px;
+    background-color: red;
+    transition: width 0.3s, background-color 0.3s;
+}
 
-    .password-strength .strength-label {
-        display: block;
-        font-size: 0.85rem;
-        color: var(--text-secondary, #6b7280);
-    }
+.password-strength .strength-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #6b7280);
+}
+
+.titleHome {
+    margin-bottom: 20px;
+    font-weight: 400;
+}
 
 
 @media (max-width: 1200px) {

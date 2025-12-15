@@ -1,0 +1,68 @@
+﻿@page "/vault/{VaultId:int}"
+@using PasswordManager.Web.Components.Vault
+
+<PageTitle>Vault</PageTitle>
+
+<h1 class="titleHome">@VaultName</h1>
+
+<div class="vaultEntries">
+    @foreach (var entry in Entries)
+    {
+        <VaultEntry Title="@entry.Title"
+                    Username="@entry.Username"
+                    Password="@entry.Password"
+                    Category="@entry.Category"
+                    OnDelete="@(() => DeleteEntry(entry.Id))" />
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int VaultId { get; set; }
+
+    private string VaultName = "Vault";
+    private List<VaultEntryModel> Entries = new();
+
+    protected override void OnInitialized()
+    {
+        VaultName = VaultId == 1 ? "Personnel" : "Partagé";
+
+        Entries = new()
+        {
+            new VaultEntryModel
+            {
+                Id = 1,
+                Title = "Instagram",
+                Username = "john.doe@gmail.com",
+                Password = "SuperSecret123!",
+                Category = "Personnel"
+            },
+            new VaultEntryModel
+            {
+                Id = 2,
+                Title = "Banque",
+                Username = "henry.podico@gmail.com",
+                Password = "P@ssword2024",
+                Category = "Personnel"
+            }
+        };
+    }
+
+    private void DeleteEntry(int id)
+    {
+        var entry = Entries.FirstOrDefault(e => e.Id == id);
+        if (entry != null)
+        {
+            Entries.Remove(entry);
+        }
+    }
+
+    private class VaultEntryModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string Category { get; set; } = "";
+    }
+}

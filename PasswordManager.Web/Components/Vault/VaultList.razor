@@ -1,0 +1,63 @@
+﻿@using Microsoft.AspNetCore.Components
+
+<PageTitle>Vaults</PageTitle>
+
+<h1 class="titleHome">Mes Vaults</h1>
+
+<div class="vaultTableWrapper">
+    <table class="vaultTable">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var vault in Vaults)
+            {
+                <tr class="vaultRow">
+                    <td class="vaultName">
+                        <span class="avatar">
+                            @vault.Name.Substring(0, 1).ToUpper()
+                        </span>
+                        <span>@vault.Name</span>
+                    </td>
+
+                    <td>
+                        <span class="badge @GetBadgeClass(vault.Category)">
+                            @vault.Category
+                        </span>
+                    </td>
+
+                    <td class="actions">
+                        <a href="/vault/@vault.Id" class="btnOpen">Ouvrir</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@code {
+    [Parameter]
+    public List<VaultModel> Vaults { get; set; } = new();
+
+    private string GetBadgeClass(string category)
+    {
+        return category.ToLower() switch
+        {
+            "personnel" => "badgePersonnel",
+            "partagé" => "badgePartage",
+            _ => "badgeDefault"
+        };
+    }
+
+    public class VaultModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+    }
+}
