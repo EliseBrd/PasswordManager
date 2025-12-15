@@ -1,7 +1,20 @@
 ﻿@page "/"
+@using PasswordManager.Web.Components.Vault
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1 class="titleHome">Passwords</h1>
 
-Welcome to your new app.
+<div class="listeVaults">
+    <VaultCard Title="Instagram"
+               Username="john.doe@gmail.com"
+               Password="SuperSecret123!"
+               Category="Partagé" />
+
+    <VaultCard Title="Banque"
+               Username="henry.podico@gmail.com"
+               Password="P@ssword2024"
+               Category="Personnel" />
+</div>
+
+
