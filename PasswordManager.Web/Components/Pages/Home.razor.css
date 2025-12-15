@@ -1,0 +1,9 @@
+﻿.listeVaults {
+    display: flex;
+    gap: 30px;
+}
+
+.titleHome {
+    margin-bottom: 20px;
+    font-weight: 400;
+}

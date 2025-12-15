@@ -1,0 +1,50 @@
+﻿@inject NavigationManager NavigationManager
+
+<nav class="left-nav">
+    <div class="logo-section">
+        <div class="logo">
+            <img src="assets/logo.svg" alt="Logo" />
+            <span class="logo-text">PassManager</span>
+        </div>
+    </div>
+
+    <div class="nav-section">
+        <input type="text" class="search-input" placeholder="Rechercher..." />
+    </div>
+
+    <div class="nav-section">
+        <h3 class="section-title">FILTRES</h3>
+        <ul class="nav-list">
+            <li class="nav-item active">
+                <i class="fa-solid fa-inbox nav-icon"></i>
+                <span>Tous les coffres</span>
+                <span class="nav-count">12</span>
+            </li>
+            <li class="nav-item">
+                <i class="fa-solid fa-lock nav-icon"></i>
+                <span>Personnels</span>
+                <span class="nav-count">8</span>
+            </li>
+            <li class="nav-item">
+                <i class="fa-solid fa-users nav-icon"></i>
+                <span>Partagés</span>
+                <span class="nav-count">4</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="nav-footer">
+        <button type="button" class="btn-primary" @onclick="GoToCreateVault">
+            <i class="fa-solid fa-plus"></i>
+            Nouveau coffre
+        </button>
+    </div>
+</nav>
+
+@code {
+    void GoToCreateVault()
+    {
+        Console.WriteLine("CLIC OK");
+        NavigationManager.NavigateTo("/createVault");
+    }
+}

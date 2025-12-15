@@ -1,0 +1,82 @@
+﻿.vaultCard {
+    width: 400px;
+    padding: 16px 25px;
+    border-radius: 20px;
+    background: white;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: 0.2s ease;
+    position: relative;
+}
+
+.vaultCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px rgba(0,0,0,0.12);
+}
+
+.vaultHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.vaultHeader .titleVault {
+    font-size: 25px;
+    font-weight: 400;
+}
+.vaultHeader .menuBtn {
+    color: #b7b7b7;
+}
+
+.vaultField {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    gap: 10px;
+    color: #8C9099;
+}
+
+.copyBtn {
+    background: transparent;
+    border: none;
+    margin-left: auto;
+    cursor: pointer;
+    color: #777;
+}
+.vaultFooter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    color: #b7b7b7;
+}
+
+.vaultMenu {
+    position: absolute;
+    top: 45px;
+    right: 10px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 8px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 50;
+}
+
+.vaultMenu .deleteBtn {
+    background: none;
+    border: none;
+    color: #ff5e5e;
+    padding: 8px 16px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+}
+.vaultMenu .deleteBtn:hover {
+    color: #c72e2e;
+}

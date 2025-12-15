@@ -1,0 +1,72 @@
+﻿<div class="vaultCard">
+    <div class="vaultHeader">
+        <h3 class="titleVault">@Title</h3>
+        <button class="menuBtn" @onclick="ToggleMenu">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+        </button>
+    </div>
+    @if (showMenu)
+    {
+        <div class="vaultMenu">
+            <button class="deleteBtn" @onclick="OnDelete">
+                <i class="fa-solid fa-trash"></i> Supprimer
+            </button>
+        </div>
+    }
+
+    <div class="vaultField">
+        <i class="fa-solid fa-user"></i>
+        <span>@Username</span>
+        <button class="copyBtn" @onclick="() => Copy(Username)">
+            <i class="fa-regular fa-copy"></i>
+        </button>
+    </div>
+
+    <div class="vaultField">
+        <i class="fa-solid fa-key"></i>
+        <span>@MaskedPassword</span>
+        <button class="copyBtn" @onclick="() => Copy(Password)">
+            <i class="fa-regular fa-copy"></i>
+        </button>
+    </div>
+
+    <div class="vaultFooter">
+        <i class="@CategoryIcon"></i>
+        <span class="category">@Category</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Username { get; set; } = "";
+    [Parameter] public string Password { get; set; } = "";
+    [Parameter] public string Category { get; set; } = "Default";
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+
+    string MaskedPassword => new string('•', Password?.Length ?? 8);
+    bool showMenu = false;
+
+    void ToggleMenu()
+    {
+        Console.WriteLine("ToggleMenu() appelé, showMenu = " + showMenu);
+        showMenu = !showMenu;
+    }
+
+    // 🟡 Ici on associe une icône selon la catégorie
+    string CategoryIcon =>
+        Category?.ToLower() switch
+        {
+            "personnel" => "fa-solid fa-lock",
+            "partagé" => "fa-solid fa-users",
+            _ => "fa-solid fa-tag" // default
+        };
+
+    async Task Copy(string text)
+    {
+        Console.WriteLine("cliqué");
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    }
+
+    [Inject] IJSRuntime JS { get; set; }
+}
