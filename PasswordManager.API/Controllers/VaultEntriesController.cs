@@ -57,8 +57,8 @@ namespace PasswordManager.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEntry(Guid id, [FromBody] VaultEntry entry)
         {
-            if (id != entry.Identifier)
-                return BadRequest("ID mismatch.");
+           // if (id != entry.Identifier)
+           //     return BadRequest("ID mismatch.");
 
             var success = await _vaultEntryService.UpdateEntryAsync(entry);
             if (!success)
