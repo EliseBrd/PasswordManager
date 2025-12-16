@@ -1,18 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using PasswordManager.API.Objects;
 
-namespace PasswordManager.API.Objects
+namespace PasswordManager.API
 {
     public class AppUser
     {
-        [Key]
-        public Guid Identifier { get; set; } = Guid.NewGuid();
+        public Guid Identifier { get; set; } = default;
+        public Guid entraId { get; set; } = default;
 
-        [Required]
-        public Guid entraId { get; set; } = Guid.Empty;
 
-        // Relations
-        public HashSet<Vault>? Vaults { get; set; }
-        public HashSet<Vault>? SharedVaults { get; set; }
-        public HashSet<VaultEntry>? Entries { get; set; }
+        public HashSet<Vault> Vaults { get; set; } = [];
+        public HashSet<Vault> SharedVaults { get; set; } = [];
+        public HashSet<VaultEntry> Entries { get; set; } = [];
     }
 }

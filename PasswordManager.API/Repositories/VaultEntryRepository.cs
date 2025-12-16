@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿/*
+using Microsoft.EntityFrameworkCore;
 using PasswordManager.API.Context;
 using PasswordManager.API.Objects;
 using PasswordManager.API.Repositories.Interfaces;
@@ -57,3 +58,4 @@ namespace PasswordManager.API.Repositories
 
     }
 }
+*/
