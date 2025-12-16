@@ -1,0 +1,131 @@
+﻿.rightMenu {
+    background-color: var(--bg-primary);
+    border-left: 1px solid var(--border-color);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.userProfile {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.userAvatar {
+    margin-bottom: 16px;
+}
+
+.avatarCircle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light-color) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 auto;
+}
+
+.userInfo .userName {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.userInfo .userEmail {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.statsSection {
+    margin-bottom: 32px;
+}
+
+.sectionTitle {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    padding: 0 8px;
+}
+
+.statCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+}
+
+.statIcon {
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border-radius: var(--radius-md);
+    color: var(--primary-color);
+}
+
+.statInfo {
+    flex: 1;
+}
+
+.statValue {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.statLabel {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.menuFooter {
+    margin-top: auto;
+    padding-top: 24px;
+}
+
+.btn {
+    width: 100%;
+    padding: 10px 16px;
+    background-color: #e5e7eb;
+    color: var(--text-primary, #111827);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+    box-shadow: none;
+}
+.btn:hover, .btn:focus {
+    background-color: var(--text-primary, #111827);
+    color: white;
+    border: none;
+}
+
+@media (max-width: 992px) {
+    .rightMenu {
+        display: none;
+    }
+}
