@@ -119,15 +119,16 @@ body {
     overflow-y: auto;
 }
 
-.logo-section {
+.logoSection {
     margin-bottom: 20px;
 }
 
-.logo {
+.logoSection .logo {
     display: flex;
     align-items: center;
     gap: 12px;
     margin: 20px;
+    text-decoration: none;
 }
 .logo img {
     width: 20px;

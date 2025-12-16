@@ -1,11 +1,11 @@
 ﻿@inject NavigationManager NavigationManager
 
-<nav class="left-nav">
-    <div class="logo-section">
-        <div class="logo">
+<div class="left-nav">
+    <div class="logoSection">
+        <a class="logo" href="/">
             <img src="assets/logo.svg" alt="Logo" />
             <span class="logo-text">PassManager</span>
-        </div>
+        </a>
     </div>
 
     <div class="nav-section">
@@ -39,12 +39,11 @@
             Nouveau coffre
         </button>
     </div>
-</nav>
+</div>
 
 @code {
     void GoToCreateVault()
     {
-        Console.WriteLine("CLIC OK");
         NavigationManager.NavigateTo("/createVault");
     }
 }
