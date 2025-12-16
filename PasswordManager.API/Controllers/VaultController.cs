@@ -18,6 +18,19 @@ namespace PasswordManager.API.Controllers
             _vaultService = vaultService;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAccessibleVaults()
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
+
+            var vaults = await _vaultService.GetAccessibleVaultsAsync(currentUser.Identifier);
+            return Ok(vaults);
+        }
+
         [HttpPost("{id}/access")]
         public async Task<IActionResult> AccessVault(Guid id, [FromBody] AccessVaultRequest request)
         {
@@ -25,30 +38,23 @@ namespace PasswordManager.API.Controllers
 
             if (vault == null)
             {
-                // We return a generic error to avoid indicating whether the vault exists or if the password was wrong.
                 return Unauthorized("Access denied. Invalid vault ID or password.");
             }
-
-            // For now, we return the vault data. In a real-world app, you'd likely return a session-specific token.
+            
             return Ok(vault);
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateVault([FromBody] CreateVaultRequest request)
         {
-            // Retrieve the user from the HttpContext
             var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
             if (currentUser == null)
             {
-                // This should not happen if the EnsureUserMiddleware is configured correctly
                 return Unauthorized("User not found or session is invalid.");
             }
 
-            //Call the service to create the vault
             var createdVault = await _vaultService.CreateVaultAsync(request.Name, request.Password, currentUser.Identifier);
 
-            // 3. Return a 201 Created response
-            // The response includes the location of the newly created resource.
             return CreatedAtAction(nameof(GetVaultById), new { id = new Guid(createdVault.Identifier) }, createdVault);
         }
 
