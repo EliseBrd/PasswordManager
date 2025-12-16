@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace PasswordManager.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitClean : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,7 +27,7 @@ namespace PasswordManager.API.Migrations
                 name: "Vaults",
                 columns: table => new
                 {
-                    Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Identifier = table.Column<string>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     CreatorIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
@@ -54,7 +54,7 @@ namespace PasswordManager.API.Migrations
                 columns: table => new
                 {
                     SharedUsersIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SharedVaultsIdentifier = table.Column<Guid>(type: "TEXT", nullable: false)
+                    SharedVaultsIdentifier = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -77,8 +77,9 @@ namespace PasswordManager.API.Migrations
                 name: "VaultEntries",
                 columns: table => new
                 {
-                    Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
-                    VaultIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Identifier = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    VaultIdentifier = table.Column<string>(type: "TEXT", nullable: false),
                     CreatorIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastUpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),

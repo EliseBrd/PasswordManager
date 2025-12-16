@@ -4,6 +4,7 @@
     {
         //clearData
         public string Identifier { get; set; } = string.Empty;
+
         public string Name { get; set; } = string.Empty;
         public Guid CreatorIdentifier { get; set; } = default; //Foreign Key for the Vault Creator
         public DateTime? CreatedAt { get; set; }
