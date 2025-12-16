@@ -1,43 +1,43 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
-using PasswordManager.API;
+using PasswordManager.API.Context;
+using PasswordManager.API.Middlewares;
+using PasswordManager.API.Repositories;
+using PasswordManager.API.Repositories.Interfaces;
 using PasswordManager.API.Services;
+using PasswordManager.API.Services.Interfaces;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-
-//charge le contexte de la db comme context principale
-builder.Services.AddDbContext<PasswordManagerDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-
-string? corsFrontEndpoint = builder.Configuration.GetValue<string>("CorsFrontEndpoint");
-
-//CORS permet d'autoriser le front � appeler l'API.
-if (string.IsNullOrWhiteSpace(corsFrontEndpoint) == false)
-{
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("WebAssemblyOrigin", policy =>
-        {
-            policy
-                .WithOrigins(corsFrontEndpoint)
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
-        });
-    });
-}
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddAuthorization();
+
+// --- DbContext registration ---
+builder.Services.AddDbContext<PasswordManagerDBContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// --- Repositories & Services registration ---
+builder.Services.AddScoped<IVaultRepository, VaultRepository>();
+builder.Services.AddScoped<IVaultService, VaultService>();
+
+// --- Controllers & Swagger ---
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configure JSON serializer to ignore cycles (e.g. Vault -> Creator -> Vaults -> ...)
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -48,19 +48,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//Ajout la couche d'authentification
 app.UseAuthentication();
-
-//Ajoute la couche d'autorisation
 app.UseAuthorization();
 
-//Middleware pour connecter automatiquement le user depuis la base de données 
 app.UseMiddleware<EnsureUserMiddleware>();
 
-//add the Core policy configuration
-app.UseCors("WebAssemblyOrigin");
-
-//Indique de cr�er les routes pour les Controlles.
 app.MapControllers();
 
 app.Run();

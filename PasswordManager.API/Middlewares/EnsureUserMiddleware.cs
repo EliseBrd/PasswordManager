@@ -5,7 +5,7 @@ using Microsoft.Graph;
 using PasswordManager.API;
 using Microsoft.Extensions.Logging;
 using PasswordManager.API.Objects;
-
+using PasswordManager.API.Context;
 
 namespace PasswordManager.API.Services;
 
@@ -14,16 +14,17 @@ public class EnsureUserMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<EnsureUserMiddleware> _logger;
 
-
     public EnsureUserMiddleware(RequestDelegate next, ILogger<EnsureUserMiddleware> logger)
     {
         _next = next;
         _logger = logger;
-
     }
 
-    public async Task InvokeAsync(HttpContext context, PasswordManagerDbContext db)
+    public async Task InvokeAsync(HttpContext context)
     {
+        // Resolve the DbContext from the request's service provider
+        var db = context.RequestServices.GetRequiredService<PasswordManagerDBContext>();
+
         // Vérifie que l'utilisateur est authentifié
         if (context.User.Identity?.IsAuthenticated == true)
         {
@@ -32,7 +33,6 @@ public class EnsureUserMiddleware
             if (!string.IsNullOrEmpty(objectIdClaim))
             {
                 Guid entraIdGuid = Guid.Parse(objectIdClaim);
-                
                 
                 // Cherche l'utilisateur en base
                 var user = await db.Users.FirstOrDefaultAsync(u => u.entraId == entraIdGuid);

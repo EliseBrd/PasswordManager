@@ -21,7 +21,7 @@ namespace PasswordManager.API.Controllers
             _vaultEntryService = vaultEntryService;
         }
 
-        // GET /api/vaultentries/vault/{vaultId} : Récupérer toutes les entrées d’un coffre par son identifiant (VaultIdentifier)
+        //Récupérer toutes les entrées d’un coffre par son identifiant (VaultIdentifier)
         [HttpGet("vault/{vaultId}")]
         public async Task<IActionResult> GetEntriesByVaultId(Guid vaultId)
         {

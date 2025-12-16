@@ -1,0 +1,31 @@
+﻿@page "/vaults"
+@using Microsoft.AspNetCore.Authorization
+@using PasswordManager.Web.Services
+@using PasswordManager.Dto.Vault.Responses
+@attribute [Authorize]
+@inject VaultService VaultService
+
+<h3>My Vaults</h3>
+
+@if (vaults == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <ul>
+        @foreach (var vault in vaults)
+        {
+            <li>@vault.Name</li>
+        }
+    </ul>
+}
+
+@code {
+    private IEnumerable<VaultSummaryResponse>? vaults;
+
+    protected override async Task OnInitializedAsync()
+    {
+        vaults = await VaultService.GetAccessibleVaultsAsync();
+    }
+}
