@@ -10,11 +10,11 @@
     <link rel="stylesheet" href="PasswordManager.Web.styles.css" />
     <link rel="icon" type="image/png" href="/assets/logoEmbleme.svg" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
-    <Routes />
+    <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
 </body>
 

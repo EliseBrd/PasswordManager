@@ -1,6 +1,11 @@
 ﻿@page "/createVault"
 @inject NavigationManager NavigationManager
 
+@using System.Security.Cryptography
+@using System.Text
+
+<PageTitle>Créer un coffre</PageTitle>
+
 <div class="vaultCreateContainer">
     <div class="vaultCreateCard">
         <div class="vaultCreateHeader">
@@ -11,38 +16,51 @@
             <p>Renseignez les informations ci-dessous pour créer un nouveau coffre.</p>
         </div>
 
-        <form class="vaultCreateform">
+        <div class="vaultCreateform">
+
             <div class="form-group">
                 <label for="vaultName">Nom du coffre</label>
-                <input id="vaultName" type="text" placeholder="Ex : Coffre personnel" />
+                <input id="vaultName"
+                       type="text"
+                       placeholder="Ex : Coffre personnel" />
             </div>
 
+            <!-- MOT DE PASSE -->
             <div class="form-group">
                 <label for="vaultPassword">Mot de passe</label>
-                <input id="vaultPassword" type="password" placeholder="Entrez un mot de passe" />
+                <input id="vaultPassword"
+                       type="text"
+                       placeholder="Entrez un mot de passe"
+                       value="@vaultPassword"
+                       @oninput="OnPasswordInput" />
             </div>
 
-            <button type="button" class="btn-secondary" id="generateBtn">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Générer un mot de passe
+            <!-- GÉNÉRATEUR -->
+            <button type="button"
+                    class="btn-secondary"
+                    @onclick="GeneratePassword">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Générer un mot de passe
             </button>
 
-            <div class="password-strength">
-                <div class="strength-bar"></div>
-                <span class="strength-label">Faible</span>
+            <!-- FORCE & ENTROPIE -->
+            <div class="passwordStrength">
+                <div class="strengthBar"
+                     style="width:@BarWidth%; background-color:@StrengthColor">
+                </div>
+
+                <span class="strengthLabel" style="color:@StrengthColor">
+                    @(string.IsNullOrEmpty(vaultPassword) ? "" : $"{strengthLabel} ({passwordEntropy:0.0} bits)")
+                </span>
+
             </div>
 
-            <button type="button" class="btn-primary" @onclick="eventCreateVault">
-                <i class="fa-solid fa-check"></i> Enregistrer
+            <button type="button"
+                    class="btn-primary"
+                    @onclick="eventCreateVault">
+                <i class="fa-solid fa-check"></i>
+                Enregistrer
             </button>
-        </form>
+        </div>
     </div>
 </div>
-
-@code {
-    async Task eventCreateVault()
-    {
-        // Appel API, stockage, etc.
-
-        NavigationManager.NavigateTo("/");
-    }
-}
