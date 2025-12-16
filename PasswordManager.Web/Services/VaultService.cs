@@ -2,41 +2,57 @@
 using PasswordManager.Dto.Vault.Requests;
 using PasswordManager.Dto.Vault.Responses;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Authentication;
+using System.Net.Http.Headers;
 
 namespace PasswordManager.Web.Services
 {
     public class VaultService
     {
-        private readonly IDownstreamApi _downstreamApi;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string _apiBaseUrl;
 
-        public VaultService(IDownstreamApi downstreamApi)
+        public VaultService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
-            _downstreamApi = downstreamApi;
+            _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
+            _apiBaseUrl = configuration.GetValue<string>("WebAPI:Endpoint") ?? throw new InvalidOperationException("WebAPI endpoint is not configured");
+        }
+
+        private async Task<HttpClient> CreateHttpClientAsync()
+        {
+            var client = _httpClientFactory.CreateClient("API");
+            var httpContext = _httpContextAccessor.HttpContext;
+
+            if (httpContext == null)
+            {
+                throw new InvalidOperationException("HttpContext is not available.");
+            }
+
+            var accessToken = await httpContext.GetTokenAsync("access_token");
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                throw new InvalidOperationException("Access token is not available.");
+            }
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            return client;
         }
 
         public async Task<IEnumerable<VaultSummaryResponse>?> GetAccessibleVaultsAsync()
         {
-            // The service name "PasswordManager.api" must match the one in Program.cs
-            return await _downstreamApi.GetForUserAsync<IEnumerable<VaultSummaryResponse>>(
-                "PasswordManager.api",
-                options =>
-                {
-                    options.RelativePath = "api/vault";
-                });
+            var client = await CreateHttpClientAsync();
+            var response = await client.GetAsync($"{_apiBaseUrl}/api/vault");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<VaultSummaryResponse>>();
         }
 
         public async Task CreateVaultAsync(CreateVaultRequest request)
         {
-            // The service name "PasswordManager.api" must match the one in Program.cs
-            // We use the overload where the relative path is specified in the options action.
-            // This avoids ambiguity between the different overloads of PostForUserAsync.
-            await _downstreamApi.PostForUserAsync<CreateVaultRequest, object>(
-                "PasswordManager.api",
-                request,
-                options =>
-                {
-                    options.RelativePath = "api/vault";
-                });
+            var client = await CreateHttpClientAsync();
+            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault", request);
+            response.EnsureSuccessStatusCode();
         }
     }
 }

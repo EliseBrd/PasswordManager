@@ -1,9 +1,26 @@
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
 using PasswordManager.Web.Components;
 using PasswordManager.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpContextAccessor();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHttpClient("API")
+        .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+        });
+}
+else
+{
+    builder.Services.AddHttpClient("API");
+}
+
 
 // --- Blazor Components ---
 builder.Services.AddRazorComponents()
@@ -16,7 +33,11 @@ var apiScope = builder.Configuration.GetValue<string>("WebAPI:Scope") ??
 
 // --- 🔐 Authentification Microsoft Entra ID ---
 builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApp(builder.Configuration, "AzureAd")
+    .AddMicrosoftIdentityWebApp(options =>
+    {
+        builder.Configuration.Bind("AzureAd", options);
+        options.SaveTokens = true;
+    })
     .EnableTokenAcquisitionToCallDownstreamApi([apiScope])
     .AddDownstreamApi("PasswordManager.api", options =>
     {
@@ -24,6 +45,9 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
         options.Scopes = [apiScope];
     })
     .AddInMemoryTokenCaches();
+
+builder.Services.AddControllersWithViews()
+    .AddMicrosoftIdentityUI();
 
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
@@ -45,8 +69,14 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
 
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

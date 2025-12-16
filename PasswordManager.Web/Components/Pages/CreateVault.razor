@@ -1,5 +1,4 @@
 ﻿@page "/createVault"
-@inject NavigationManager NavigationManager
 
 @using System.Security.Cryptography
 @using System.Text
@@ -20,7 +19,8 @@
                 <label for="vaultName">Nom du coffre</label>
                 <input id="vaultName"
                        type="text"
-                       placeholder="Ex : Coffre personnel" />
+                       placeholder="Ex : Coffre personnel"
+                       @bind="_vaultName" />
             </div>
 
             <!-- MOT DE PASSE -->
@@ -29,7 +29,7 @@
                 <input id="vaultPassword"
                        type="text"
                        placeholder="Entrez un mot de passe"
-                       value="@vaultPassword"
+                       value="@_vaultPassword"
                        @oninput="OnPasswordInput" />
             </div>
 
@@ -48,14 +48,14 @@
                 </div>
 
                 <span class="strengthLabel" style="color:@StrengthColor">
-                    @(string.IsNullOrEmpty(vaultPassword) ? "" : $"{strengthLabel} ({passwordEntropy:0.0} bits)")
+                    @(string.IsNullOrEmpty(_vaultPassword) ? "" : $"{_strengthLabel} ({_passwordEntropy:0.0} bits)")
                 </span>
 
             </div>
 
             <button type="button"
                     class="btn-primary"
-                    @onclick="eventCreateVault">
+                    @onclick="EventCreateVault">
                 <i class="fa-solid fa-check"></i>
                 Enregistrer
             </button>
