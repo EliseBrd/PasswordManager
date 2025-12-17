@@ -366,3 +366,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 .idea/
+
+
+
+#database 
+/PasswordManager.API/PasswordManager.db
+/PasswordManager.API/PasswordManager.db-shm
+/PasswordManager.API/PasswordManager.db-shm
