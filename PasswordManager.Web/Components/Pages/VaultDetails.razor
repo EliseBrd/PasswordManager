@@ -55,6 +55,19 @@ else
 }
 
 
+@*
+<button class="btn btn-primary"
+        @onclick="() => isModalOpen = true">
+    <i class="fa-solid fa-plus"></i>
+    Ajouter une entrée
+</button>
+
+<CreateVaultEntryModal IsOpen="@isModalOpen"
+                        IsOpenChanged="@(v => isModalOpen = v)"
+                        OnSave="CreateEntry" />
+                        *@
+
+
 @code {
     [Parameter]
     public string VaultId { get; set; } = "";
