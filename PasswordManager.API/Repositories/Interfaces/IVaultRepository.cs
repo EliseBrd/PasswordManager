@@ -6,6 +6,7 @@ namespace PasswordManager.API.Repositories.Interfaces
     {
         Task<IEnumerable<Vault>> GetAllAsync();
         Task<Vault?> GetByIdAsync(Guid id);
+        Task<Vault?> GetByIdWithSharedUsersAsync(Guid id);
         Task<IEnumerable<Vault>> GetByUserIdAsync(Guid userId);
         Task AddAsync(Vault vault);
         Task UpdateAsync(Vault vault);

@@ -86,6 +86,12 @@ namespace PasswordManager.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVaultById(Guid id)
         {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
+
             var vault = await _vaultService.GetVaultByIdAsync(id);
             if (vault == null)
             {
@@ -96,8 +102,11 @@ namespace PasswordManager.API.Controllers
             {
                 Identifier = vault.Identifier,
                 Name = vault.Name,
+                CreatorIdentifier = vault.CreatorIdentifier,
+                IsCreator = vault.CreatorIdentifier == currentUser.Identifier, // Set the new property
+                IsShared = vault.IsShared,
                 MasterSalt = vault.MasterSalt,
-                EncryptedKey = vault.encryptKey,
+                EncryptedKey = vault.EncryptKey,
                 Entries = vault.Entries.Select(e => {
                     var ivBytes = Convert.FromBase64String(e.IVData);
                     var cypherBytes = Convert.FromBase64String(e.CypherData);
@@ -117,6 +126,42 @@ namespace PasswordManager.API.Controllers
             };
             
             return Ok(response);
+        }
+
+        [HttpPost("{id}/share")]
+        public async Task<IActionResult> ShareVault(Guid id)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
+
+            var success = await _vaultService.ShareVaultAsync(id, currentUser.Identifier);
+            if (!success)
+            {
+                return Forbid("You are not authorized to share this vault or the vault does not exist.");
+            }
+
+            return NoContent();
+        }
+
+        [HttpPost("{id}/users")]
+        public async Task<IActionResult> AddUserToVault(Guid id, [FromBody] AddUserToVaultRequest request)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
+
+            var success = await _vaultService.AddUserToVaultAsync(id, request.UserId, currentUser.Identifier);
+            if (!success)
+            {
+                return Forbid("You are not authorized to add users to this vault, the vault is not shared, or the user to add does not exist.");
+            }
+
+            return NoContent();
         }
     }
 }
