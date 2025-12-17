@@ -8,6 +8,7 @@ using PasswordManager.Dto.Vault;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Components;
 
 namespace PasswordManager.Web.Services
 {
@@ -16,6 +17,7 @@ namespace PasswordManager.Web.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ITokenAcquisition _tokenAcquisition;
         private readonly AuthenticationStateProvider _authenticationStateProvider;
+        private readonly NavigationManager _navigation;
         private readonly string _apiBaseUrl;
         private readonly string _apiScope;
         private readonly JsonSerializerOptions _jsonOptions;
@@ -24,11 +26,13 @@ namespace PasswordManager.Web.Services
             IHttpClientFactory httpClientFactory, 
             IConfiguration configuration, 
             ITokenAcquisition tokenAcquisition, 
-            AuthenticationStateProvider authenticationStateProvider)
+            AuthenticationStateProvider authenticationStateProvider,
+            NavigationManager navigation)
         {
             _httpClientFactory = httpClientFactory;
             _tokenAcquisition = tokenAcquisition;
             _authenticationStateProvider = authenticationStateProvider;
+            _navigation = navigation;
             _apiBaseUrl = configuration.GetValue<string>("WebAPI:Endpoint") ?? throw new InvalidOperationException("WebAPI endpoint is not configured");
             _apiScope = configuration.GetValue<string>("WebAPI:Scope") ?? throw new InvalidOperationException("WebAPI scope is not configured");
             _jsonOptions = new JsonSerializerOptions
@@ -44,9 +48,21 @@ namespace PasswordManager.Web.Services
             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
-            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(new[] { _apiScope }, user: user);
+            if (user.Identity?.IsAuthenticated ?? false)
+            {
+                try
+                {
+                    var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(new[] { _apiScope }, user: user);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                }
+                catch (MicrosoftIdentityWebChallengeUserException ex)
+                {
+                    // This exception means the user needs to re-authenticate.
+                    // In Blazor Server, we need to manually redirect.
+                    _navigation.NavigateTo($"/MicrosoftIdentity/Account/SignIn", forceLoad: true);
+                }
+            }
 
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             return client;
         }
 
