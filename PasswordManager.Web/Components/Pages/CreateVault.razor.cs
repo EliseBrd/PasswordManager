@@ -2,27 +2,33 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.JSInterop;
+using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Web.Services;
 
 namespace PasswordManager.Web.Components.Pages
 {
     public partial class CreateVault : ComponentBase
     {
-        [Inject]
-        protected IJSRuntime JS { get; set; } = default!;
+        [Inject] private IJSRuntime Js { get; set; } = default!;
+        [Inject] private VaultService VaultService { get; set; } = default!;
+        [Inject] private NavigationManager NavManager { get; set; } = default!;
+
         // =========================
         // STATE
         // =========================
-        string vaultPassword = "";
-        double passwordEntropy = 0;
-        string strengthLabel = "Faible";
-        bool isGenerated = false;
-        double BarWidth
+        private string _vaultName = "";
+        private string _vaultPassword = "";
+        private double _passwordEntropy = 0;
+        private string _strengthLabel = "Faible";
+        private bool _isGenerated = false;
+
+        private double BarWidth
         {
             get
             {
-                if (string.IsNullOrEmpty(vaultPassword))
+                if (string.IsNullOrEmpty(_vaultPassword))
                     return 0; // rien afficher
-                return strengthLabel switch
+                return _strengthLabel switch
                 {
                     "Faible" => 25,
                     "Moyen" => 50,
@@ -32,13 +38,13 @@ namespace PasswordManager.Web.Components.Pages
             }
         }
 
-        string StrengthColor
+        private string StrengthColor
         {
             get
             {
-                if (string.IsNullOrEmpty(vaultPassword))
+                if (string.IsNullOrEmpty(_vaultPassword))
                     return "#d1d5db"; // gris clair pour “rien”
-                return strengthLabel switch
+                return _strengthLabel switch
                 {
                     "Faible" => "#e74c3c", // rouge
                     "Moyen" => "#f39c12", // orange
@@ -48,18 +54,18 @@ namespace PasswordManager.Web.Components.Pages
             }
         }
 
-        async Task Log(string message)
+        private async Task Log(string message)
         {
-            await JS.InvokeVoidAsync("console.log", message);
+            await Js.InvokeVoidAsync("console.log", message);
         }
 
         // =========================
         // INPUT LIVE
         // =========================
-        void OnPasswordInput(ChangeEventArgs e)
+        private void OnPasswordInput(ChangeEventArgs e)
         {
-            vaultPassword = e.Value?.ToString() ?? "";
-            isGenerated = false;
+            _vaultPassword = e.Value?.ToString() ?? "";
+            _isGenerated = false;
             UpdateEntropy();
         }
 
@@ -85,7 +91,7 @@ namespace PasswordManager.Web.Components.Pages
                 sb.Append(chars[bytes[i] % chars.Length]);
             }
 
-            vaultPassword = sb.ToString();
+            _vaultPassword = sb.ToString();
             UpdateEntropy();
 
             await Task.CompletedTask;
@@ -94,13 +100,13 @@ namespace PasswordManager.Web.Components.Pages
         // =========================
         // ENTROPIE
         // =========================
-        void UpdateEntropy()
+        private void UpdateEntropy()
         {
-            passwordEntropy = CalculerEntropie(vaultPassword);
-            strengthLabel = GetStrengthLabel(passwordEntropy);
+            _passwordEntropy = CalculerEntropie(_vaultPassword);
+            _strengthLabel = GetStrengthLabel(_passwordEntropy);
         }
 
-        double CalculerEntropie(string chaine)
+        private double CalculerEntropie(string chaine)
         {
             if (string.IsNullOrEmpty(chaine))
                 return 0;
@@ -126,7 +132,7 @@ namespace PasswordManager.Web.Components.Pages
             return entropie * longueur; // bits totaux
         }
 
-        string GetStrengthLabel(double entropy)
+        private string GetStrengthLabel(double entropy)
         {
             if (entropy < 40) return "Faible";
             if (entropy < 60) return "Moyen";
@@ -136,11 +142,19 @@ namespace PasswordManager.Web.Components.Pages
         // =========================
         // CRÉATION DU COFFRE
         // =========================
-        async Task eventCreateVault()
+        private async Task EventCreateVault()
         {
-            // TODO : appel API avec vaultPassword
-            NavigationManager.NavigateTo("/");
-            await Task.CompletedTask;
+            if (!string.IsNullOrWhiteSpace(_vaultName) && !string.IsNullOrWhiteSpace(_vaultPassword))
+            {
+                var request = new CreateVaultRequest
+                {
+                    Name = _vaultName,
+                    Password = _vaultPassword
+                };
+
+                await VaultService.CreateVaultAsync(request);
+                NavManager.NavigateTo("/");
+            }
         }
     }
 }

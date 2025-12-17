@@ -25,7 +25,10 @@
 
     <div class="vaultField">
         <i class="fa-solid fa-key"></i>
-        <span>@MaskedPassword</span>
+        <span>@(string.IsNullOrEmpty(Password) ? "••••••••" : Password)</span>
+        <button class="showBtn" @onclick="OnShowPassword">
+            <i class="fa-regular fa-eye"></i>
+        </button>
         <button class="copyBtn" @onclick="() => Copy(Password)">
             <i class="fa-regular fa-copy"></i>
         </button>
@@ -43,11 +46,9 @@
     [Parameter] public string Password { get; set; } = "";
     [Parameter] public string Category { get; set; } = "Default";
     [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnShowPassword { get; set; }
 
     private bool showMenu = false;
-
-    private string MaskedPassword =>
-        new string('•', Password?.Length > 0 ? Password.Length : 8);
 
     private void ToggleMenu()
     {

@@ -21,7 +21,9 @@ namespace PasswordManager.API.Repositories
 
         public async Task<Vault?> GetByIdAsync(Guid id)
         {
-            return await _context.Vaults.FirstOrDefaultAsync(v => v.Identifier == id.ToString());
+            return await _context.Vaults
+                .Include(v => v.Entries)
+                .FirstOrDefaultAsync(v => v.Identifier == id.ToString());
         }
 
         public async Task<IEnumerable<Vault>> GetByUserIdAsync(Guid userId)
