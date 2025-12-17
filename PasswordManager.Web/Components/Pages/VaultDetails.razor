@@ -47,6 +47,7 @@ else
             <VaultEntry Title="@entry.Title"
                         Username="@entry.Username"
                         Password="@entry.Password"
+                        OnShowPassword="@(() => ShowPassword(entry))"
                         Category=""
                         OnDelete="@(() => DeleteEntry(entry.Id))" />
         }
@@ -78,7 +79,6 @@ else
         catch (Exception ex)
         {
             errorMessage = "Impossible de charger les détails du coffre.";
-            Console.WriteLine($"Error loading vault: {ex.Message}");
         }
     }
 
@@ -94,12 +94,13 @@ else
         {
             decryptedVaultKey = await JSRuntime.InvokeAsync<string>("cryptoFunctions.deriveKeyAndDecrypt", masterPassword, vault.MasterSalt, vault.EncryptedKey);
 
-            foreach (var entry in vault.Entries)
+            foreach (var entryDto in vault.Entries)
             {
-                var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", decryptedVaultKey, entry.EncryptedData);
+                var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", decryptedVaultKey, entryDto.EncryptedData);
                 var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (entryDetails != null)
                 {
+                    entryDetails.Id = int.Parse(entryDto.Identifier); // Keep track of the real ID
                     decryptedEntries.Add(entryDetails);
                 }
             }
@@ -116,21 +117,41 @@ else
     {
         if (string.IsNullOrWhiteSpace(newEntry.Title)) return;
 
-        var jsonEntry = JsonSerializer.Serialize(newEntry);
-        var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", decryptedVaultKey, jsonEntry);
+        // Create a version of the entry without the password for EncryptedData
+        var dataToEncrypt = new { newEntry.Title, newEntry.Username };
+        var jsonData = JsonSerializer.Serialize(dataToEncrypt);
+        var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", decryptedVaultKey, jsonData);
+
+        // Encrypt the password separately
+        var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", decryptedVaultKey, newEntry.Password);
 
         var request = new CreateVaultEntryRequest
         {
             VaultIdentifier = VaultId,
-            EncryptedData = encryptedData
+            EncryptedData = encryptedData,
+            EncryptedPassword = encryptedPassword
         };
 
         await VaultService.CreateVaultEntryAsync(request);
 
-        // Refresh UI
+        // Refresh UI (simplified)
         decryptedEntries.Add(newEntry);
         newEntry = new();
         showCreateForm = false;
+    }
+
+    private async Task ShowPassword(DecryptedVaultEntry entry)
+    {
+        // If password is not already revealed
+        if (string.IsNullOrEmpty(entry.Password))
+        {
+            var encryptedPassword = await VaultService.GetVaultEntryPasswordAsync(entry.Id);
+            if (encryptedPassword != null)
+            {
+                entry.Password = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", decryptedVaultKey, encryptedPassword);
+                StateHasChanged(); // Refresh the UI to show the password
+            }
+        }
     }
 
     private void DeleteEntry(int id)
@@ -140,9 +161,9 @@ else
 
     public class DecryptedVaultEntry
     {
-        public int Id { get; set; } // You might want to use a Guid/string
+        public int Id { get; set; }
         public string Title { get; set; } = "";
         public string Username { get; set; } = "";
-        public string Password { get; set; } = "";
+        public string Password { get; set; } = ""; // Will be filled on demand
     }
 }

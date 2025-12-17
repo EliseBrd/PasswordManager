@@ -66,6 +66,13 @@ namespace PasswordManager.Web.Services
             return await response.Content.ReadFromJsonAsync<VaultDetailsResponse>(_jsonOptions);
         }
 
+        public async Task<string?> GetVaultEntryPasswordAsync(int entryId)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.GetFromJsonAsync<JsonElement>($"{_apiBaseUrl}/api/vault/entry/{entryId}/password", _jsonOptions);
+            return response.TryGetProperty("encryptedPassword", out var prop) ? prop.GetString() : null;
+        }
+
         public async Task CreateVaultAsync(CreateVaultRequest request)
         {
             var client = await CreateHttpClientAsync();

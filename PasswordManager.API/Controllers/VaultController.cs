@@ -75,6 +75,14 @@ namespace PasswordManager.API.Controllers
             return CreatedAtAction(nameof(GetVaultById), new { id = new Guid(createdEntry.VaultIdentifier) }, createdEntry);
         }
 
+        [HttpGet("entry/{id}/password")]
+        public async Task<IActionResult> GetVaultEntryPassword(int id)
+        {
+            var encryptedPassword = await _vaultService.GetVaultEntryPasswordAsync(id);
+            if (encryptedPassword == null) return NotFound();
+            return Ok(new { encryptedPassword });
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVaultById(Guid id)
         {
