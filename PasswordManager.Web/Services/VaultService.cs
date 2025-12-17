@@ -86,5 +86,12 @@ namespace PasswordManager.Web.Services
             var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault/entry", request, _jsonOptions);
             response.EnsureSuccessStatusCode();
         }
+
+        public async Task ShareVaultAsync(string vaultId)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.PostAsync($"{_apiBaseUrl}/api/vault/{vaultId}/share", null);
+            response.EnsureSuccessStatusCode();
+        }
     }
 }

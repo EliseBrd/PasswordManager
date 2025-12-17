@@ -9,11 +9,11 @@
         public Guid CreatorIdentifier { get; set; } = default; //Foreign Key for the Vault Creator
         public DateTime? CreatedAt { get; set; }
         public DateTime? LastUpdatedAt { get; set; }
-        public bool isShared { get; set; }
+        public bool IsShared { get; set; }
 
         public string MasterSalt { get; set; } //Salt used to created the Symetrique encryption key from the password
         public string Salt { get; set; } //Salt used to encrypt the vault entries
-        public string encryptKey { get; set; }
+        public string EncryptKey { get; set; }
         public string Password { get; set; }
 
 

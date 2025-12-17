@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PasswordManager.Dto.Vault.Responses
 {
@@ -6,6 +7,9 @@ namespace PasswordManager.Dto.Vault.Responses
     {
         public string Identifier { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+        public Guid CreatorIdentifier { get; set; }
+        public bool IsCreator { get; set; } // New property
+        public bool IsShared { get; set; }
         public string MasterSalt { get; set; } = string.Empty;
         public string EncryptedKey { get; set; } = string.Empty;
         public List<VaultEntryDto> Entries { get; set; } = new();
