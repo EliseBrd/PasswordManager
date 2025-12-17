@@ -3,9 +3,11 @@ using PasswordManager.API.Context;
 using PasswordManager.API.Objects;
 using PasswordManager.API.Repositories.Interfaces;
 using PasswordManager.API.Services.Interfaces;
+using PasswordManager.Dto.Vault.Requests;
 using PasswordManager.Dto.Vault.Responses;
 using System.Security.Cryptography;
 using BCrypt.Net;
+using System;
 
 namespace PasswordManager.API.Services
 {
@@ -28,7 +30,7 @@ namespace PasswordManager.API.Services
             {
                 Identifier = v.Identifier,
                 Name = v.Name,
-                Password = v.Password // Remember this is the HASH
+                IsShared = v.isShared
             });
         }
         
@@ -69,6 +71,40 @@ namespace PasswordManager.API.Services
 
             await _repository.AddAsync(vault);
             return vault;
+        }
+
+        public async Task<VaultEntry> CreateVaultEntryAsync(CreateVaultEntryRequest request, Guid creatorId)
+        {
+            var combinedBytes = Convert.FromBase64String(request.EncryptedData);
+
+            // IV (12 bytes) + Ciphertext + Tag (16 bytes)
+            var iv = new byte[12];
+            var tag = new byte[16];
+            var ciphertext = new byte[combinedBytes.Length - iv.Length - tag.Length];
+
+            Buffer.BlockCopy(combinedBytes, 0, iv, 0, iv.Length);
+            Buffer.BlockCopy(combinedBytes, iv.Length, ciphertext, 0, ciphertext.Length);
+            Buffer.BlockCopy(combinedBytes, iv.Length + ciphertext.Length, tag, 0, tag.Length);
+
+            var entry = new VaultEntry
+            {
+                VaultIdentifier = request.VaultIdentifier,
+                CreatorIdentifier = creatorId,
+                CreatedAt = DateTime.UtcNow,
+                LastUpdatedAt = DateTime.UtcNow,
+                IVData = Convert.ToBase64String(iv),
+                CypherData = Convert.ToBase64String(ciphertext),
+                TagData = Convert.ToBase64String(tag),
+                // These are not used for entry data, but the model requires them
+                CypherPassword = "", 
+                IVPassword = "",
+                TagPasswords = ""
+            };
+
+            _context.VaultEntries.Add(entry);
+            await _context.SaveChangesAsync();
+
+            return entry;
         }
 
         public async Task<Vault?> GetVaultByIdAsync(Guid id)

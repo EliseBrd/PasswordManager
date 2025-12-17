@@ -4,37 +4,47 @@ using PasswordManager.Dto.Vault.Responses;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authentication;
 using System.Net.Http.Headers;
+using PasswordManager.Dto.Vault;
+using System.Text.Json;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Identity.Web;
 
 namespace PasswordManager.Web.Services
 {
     public class VaultService
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITokenAcquisition _tokenAcquisition;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
         private readonly string _apiBaseUrl;
+        private readonly string _apiScope;
+        private readonly JsonSerializerOptions _jsonOptions;
 
-        public VaultService(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+        public VaultService(
+            IHttpClientFactory httpClientFactory, 
+            IConfiguration configuration, 
+            ITokenAcquisition tokenAcquisition, 
+            AuthenticationStateProvider authenticationStateProvider)
         {
             _httpClientFactory = httpClientFactory;
-            _httpContextAccessor = httpContextAccessor;
+            _tokenAcquisition = tokenAcquisition;
+            _authenticationStateProvider = authenticationStateProvider;
             _apiBaseUrl = configuration.GetValue<string>("WebAPI:Endpoint") ?? throw new InvalidOperationException("WebAPI endpoint is not configured");
+            _apiScope = configuration.GetValue<string>("WebAPI:Scope") ?? throw new InvalidOperationException("WebAPI scope is not configured");
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
         }
 
         private async Task<HttpClient> CreateHttpClientAsync()
         {
             var client = _httpClientFactory.CreateClient("API");
-            var httpContext = _httpContextAccessor.HttpContext;
+            
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
 
-            if (httpContext == null)
-            {
-                throw new InvalidOperationException("HttpContext is not available.");
-            }
-
-            var accessToken = await httpContext.GetTokenAsync("access_token");
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                throw new InvalidOperationException("Access token is not available.");
-            }
+            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(new[] { _apiScope }, user: user);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             return client;
@@ -45,13 +55,28 @@ namespace PasswordManager.Web.Services
             var client = await CreateHttpClientAsync();
             var response = await client.GetAsync($"{_apiBaseUrl}/api/vault");
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<IEnumerable<VaultSummaryResponse>>();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<VaultSummaryResponse>>(_jsonOptions);
+        }
+
+        public async Task<VaultDetailsResponse?> GetVaultDetailsAsync(string vaultId)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.GetAsync($"{_apiBaseUrl}/api/vault/{vaultId}");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<VaultDetailsResponse>(_jsonOptions);
         }
 
         public async Task CreateVaultAsync(CreateVaultRequest request)
         {
             var client = await CreateHttpClientAsync();
-            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault", request);
+            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault", request, _jsonOptions);
+            response.EnsureSuccessStatusCode();
+        }
+
+        public async Task CreateVaultEntryAsync(CreateVaultEntryRequest request)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault/entry", request, _jsonOptions);
             response.EnsureSuccessStatusCode();
         }
     }

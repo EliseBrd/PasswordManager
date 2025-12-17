@@ -1,81 +1,43 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
+@using PasswordManager.Web.Components.Vault
+@using PasswordManager.Web.Services
 
 @inject NavigationManager Navigation
-@using PasswordManager.Web.Components.Vault
+@inject VaultService VaultService
 
-@* <div class="listeVaults">
-    <VaultCard Title="Instagram"
-               Username="john.doe@gmail.com"
-               Password="SuperSecret123!"
-               Category="Partagé" />
-
-    <VaultCard Title="Banque"
-               Username="henry.podico@gmail.com"
-               Password="P@ssword2024"
-               Category="Personnel" />
-</div> *@
 <VaultList Vaults="vaults" />
 
 @code {
-    private List<VaultList.VaultModel> vaults = new()
+    private List<VaultList.VaultModel> vaults = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        new VaultList.VaultModel
+        try
         {
-            Id = 1,
-            Name = "Famille",
-            Category = "Personnel"
-        },
-        new VaultList.VaultModel
-        {
-            Id = 2,
-            Name = "Coffre secret",
-            Category = "Partagé"
-        },
-        new VaultList.VaultModel
-        {
-            Id = 2,
-            Name = "Les copains",
-            Category = "Partagé"
-        },
-        new VaultList.VaultModel
-        {
-            Id = 2,
-            Name = "bebous",
-            Category = "Partagé"
-        },
-        new VaultList.VaultModel
-        {
-            Id = 2,
-            Name = "Crédit mutuel",
-            Category = "Personnel"
+            var accessibleVaults = await VaultService.GetAccessibleVaultsAsync();
+            if (accessibleVaults != null)
+            {
+                vaults = accessibleVaults.Select(v => new VaultList.VaultModel
+                {
+                    Identifier = v.Identifier,
+                    Name = v.Name,
+                    IsShared = v.IsShared,
+                    Category = v.IsShared ? "Partagé" : "Personnel"
+                }).ToList();
+            }
         }
-    };
+        catch (Exception ex)
+        {
+            // Handle error, e.g., show a message
+            Console.WriteLine($"Error fetching vaults: {ex.Message}");
+        }
+    }
 }
 
 <AuthorizeView>
     <Authorized>
         Hello, @context.User.Identity?.Name!
-        @* <button class="nav-link btn btn-link" @onclick="@(() => Inspect(context))">Inspect</button> *@
-        <form action="authentication/logout" method="post">
-            <AntiforgeryToken />
-            <input type="hidden" name="ReturnUrl" value="@(Navigation.Uri)" />
-            <button type="submit" class="nav-link btn btn-link">
-                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-            </button>
-        </form>
-    </Authorized>
-    
-    <NotAuthorized>
-        <a href="authentication/login">Log in</a>
-    </NotAuthorized>
-</AuthorizeView>
-   
-
-<AuthorizeView>
-    <Authorized>
-        Hello, @context.User.Identity?.Name!
-        @* <button class="nav-link btn btn-link" @onclick="@(() => Inspect(context))">Inspect</button> *@
         <form action="authentication/logout" method="post">
             <AntiforgeryToken />
             <input type="hidden" name="ReturnUrl" value="@(Navigation.Uri)" />

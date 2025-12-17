@@ -31,7 +31,7 @@
                     </td>
 
                     <td class="actions">
-                        <a href="/vault/@vault.Id" class="btnOpen">Ouvrir</a>
+                        <a href="/vault/@vault.Identifier" class="btnOpen">Ouvrir</a>
                     </td>
                 </tr>
             }
@@ -56,8 +56,9 @@
 
     public class VaultModel
     {
-        public int Id { get; set; }
+        public string Identifier { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
+        public bool IsShared { get; set; }
     }
 }

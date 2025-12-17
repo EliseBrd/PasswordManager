@@ -1,68 +1,148 @@
-﻿@page "/vault/{VaultId:int}"
+﻿@page "/vault/{VaultId}"
 @using PasswordManager.Web.Components.Vault
+@using PasswordManager.Web.Services
+@using PasswordManager.Dto.Vault.Requests
+@using PasswordManager.Dto.Vault.Responses
+@using System.Text.Json
+@inject VaultService VaultService
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Vault</PageTitle>
+<PageTitle>Vault - @(vault?.Name ?? "...")</PageTitle>
 
-<h1 class="titleHome">@VaultName</h1>
+@if (vault == null)
+{
+    <p>Chargement...</p>
+}
+else if (!isUnlocked)
+{
+    <div class="unlock-vault-form">
+        <h3>Déverrouiller le coffre "@vault.Name"</h3>
+        <input type="password" @bind="masterPassword" placeholder="Mot de passe du coffre" />
+        <button @onclick="UnlockVault">Déverrouiller</button>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="error-message">@errorMessage</p>
+        }
+    </div>
+}
+else
+{
+    <h1 class="titleHome">@vault.Name</h1>
+    <button @onclick="() => showCreateForm = !showCreateForm">Ajouter une entrée</button>
 
-<div class="vaultEntries">
-    @foreach (var entry in Entries)
+    @if (showCreateForm)
     {
-        <VaultEntry Title="@entry.Title"
-                    Username="@entry.Username"
-                    Password="@entry.Password"
-                    Category="@entry.Category"
-                    OnDelete="@(() => DeleteEntry(entry.Id))" />
+        <div class="create-entry-form">
+            <h3>Nouvelle entrée</h3>
+            <input @bind="newEntry.Title" placeholder="Titre" />
+            <input @bind="newEntry.Username" placeholder="Nom d'utilisateur" />
+            <input @bind="newEntry.Password" placeholder="Mot de passe" />
+            <button @onclick="CreateEntry">Enregistrer</button>
+        </div>
     }
-</div>
+
+    <div class="vaultEntries">
+        @foreach (var entry in decryptedEntries)
+        {
+            <VaultEntry Title="@entry.Title"
+                        Username="@entry.Username"
+                        Password="@entry.Password"
+                        Category=""
+                        OnDelete="@(() => DeleteEntry(entry.Id))" />
+        }
+    </div>
+}
+
 
 @code {
     [Parameter]
-    public int VaultId { get; set; }
+    public string VaultId { get; set; } = "";
 
-    private string VaultName = "Vault";
-    private List<VaultEntryModel> Entries = new();
+    private VaultDetailsResponse? vault;
+    private string masterPassword = "";
+    private bool isUnlocked = false;
+    private string errorMessage = "";
+    private string decryptedVaultKey = ""; // Store the decrypted key here
 
-    protected override void OnInitialized()
+    private List<DecryptedVaultEntry> decryptedEntries = new();
+    
+    private bool showCreateForm = false;
+    private DecryptedVaultEntry newEntry = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        VaultName = VaultId == 1 ? "Personnel" : "Partagé";
-
-        Entries = new()
+        try
         {
-            new VaultEntryModel
+            vault = await VaultService.GetVaultDetailsAsync(VaultId);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Impossible de charger les détails du coffre.";
+            Console.WriteLine($"Error loading vault: {ex.Message}");
+        }
+    }
+
+    private async Task UnlockVault()
+    {
+        if (vault == null || string.IsNullOrWhiteSpace(masterPassword))
+        {
+            errorMessage = "Veuillez entrer le mot de passe.";
+            return;
+        }
+
+        try
+        {
+            decryptedVaultKey = await JSRuntime.InvokeAsync<string>("cryptoFunctions.deriveKeyAndDecrypt", masterPassword, vault.MasterSalt, vault.EncryptedKey);
+
+            foreach (var entry in vault.Entries)
             {
-                Id = 1,
-                Title = "Instagram",
-                Username = "john.doe@gmail.com",
-                Password = "SuperSecret123!",
-                Category = "Personnel"
-            },
-            new VaultEntryModel
-            {
-                Id = 2,
-                Title = "Banque",
-                Username = "henry.podico@gmail.com",
-                Password = "P@ssword2024",
-                Category = "Personnel"
+                var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", decryptedVaultKey, entry.EncryptedData);
+                var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (entryDetails != null)
+                {
+                    decryptedEntries.Add(entryDetails);
+                }
             }
+            isUnlocked = true;
+            errorMessage = "";
+        }
+        catch (Exception)
+        {
+            errorMessage = "Mot de passe incorrect ou erreur de déchiffrement.";
+        }
+    }
+
+    private async Task CreateEntry()
+    {
+        if (string.IsNullOrWhiteSpace(newEntry.Title)) return;
+
+        var jsonEntry = JsonSerializer.Serialize(newEntry);
+        var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", decryptedVaultKey, jsonEntry);
+
+        var request = new CreateVaultEntryRequest
+        {
+            VaultIdentifier = VaultId,
+            EncryptedData = encryptedData
         };
+
+        await VaultService.CreateVaultEntryAsync(request);
+
+        // Refresh UI
+        decryptedEntries.Add(newEntry);
+        newEntry = new();
+        showCreateForm = false;
     }
 
     private void DeleteEntry(int id)
     {
-        var entry = Entries.FirstOrDefault(e => e.Id == id);
-        if (entry != null)
-        {
-            Entries.Remove(entry);
-        }
+        // To be implemented
     }
 
-    private class VaultEntryModel
+    public class DecryptedVaultEntry
     {
-        public int Id { get; set; }
+        public int Id { get; set; } // You might want to use a Guid/string
         public string Title { get; set; } = "";
         public string Username { get; set; } = "";
         public string Password { get; set; } = "";
-        public string Category { get; set; } = "";
     }
 }
