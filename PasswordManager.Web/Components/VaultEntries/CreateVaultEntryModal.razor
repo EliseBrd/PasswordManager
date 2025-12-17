@@ -1,0 +1,64 @@
+﻿@if (IsOpen)
+{
+    <div class="modal fade show d-block"
+         tabindex="-1"
+         style="background-color: rgba(0,0,0,.5);">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-key"></i>
+                        Nouvelle entrée
+                    </h5>
+                    <button type="button"
+                            class="btn-close"
+                            @onclick="Close">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nom</label>
+                        <input class="form-control"
+                               @bind="EntryName" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Identifiant</label>
+                        <input class="form-control"
+                               @bind="EntryUsername" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe</label>
+                        <input type="password"
+                               class="form-control"
+                               @bind="EntryPassword" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control"
+                                  rows="3"
+                                  @bind="EntryNotes"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"
+                            @onclick="Close">
+                        Annuler
+                    </button>
+
+                    <button class="btn btn-primary"
+                            @onclick="Save">
+                        Enregistrer
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
