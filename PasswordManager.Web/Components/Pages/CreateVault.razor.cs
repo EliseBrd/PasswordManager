@@ -54,11 +54,6 @@ namespace PasswordManager.Web.Components.Pages
             }
         }
 
-        private async Task Log(string message)
-        {
-            await Js.InvokeVoidAsync("console.log", message);
-        }
-
         // =========================
         // INPUT LIVE
         // =========================
@@ -74,7 +69,7 @@ namespace PasswordManager.Web.Components.Pages
         // =========================
         private async Task GeneratePassword()
         {
-            await Log("➡ GeneratePassword() appelé");
+            Console.WriteLine("➡ GeneratePassword() appelé");
 
             const string chars =
                 "abcdefghijklmnopqrstuvwxyz" +

@@ -1,6 +1,4 @@
-﻿@inject NavigationManager NavigationManager
-
-<div class="leftMenu">
+﻿<div class="leftMenu">
     <div class="logoSection">
         <a class="logo" href="/">
             <img src="assets/logo.svg" alt="Logo" />
@@ -40,10 +38,3 @@
         </button>
     </div>
 </div>
-
-@code {
-    void GoToCreateVault()
-    {
-        NavigationManager.NavigateTo("/createVault");
-    }
-}
