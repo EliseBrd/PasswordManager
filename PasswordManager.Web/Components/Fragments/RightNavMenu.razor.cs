@@ -1,8 +1,9 @@
 ﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Components;
 
-namespace PasswordManager.Web.Components.Layout;
+namespace PasswordManager.Web.Components.Fragments;
 
-public partial class RightNavMenu
+public partial class RightNavMenu : ComponentBase
 {
     string GetDisplayName(ClaimsPrincipal user)
     {
