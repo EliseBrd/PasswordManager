@@ -6,6 +6,7 @@
 }
 
 .main-content {
+    position: relative;
     padding: 32px;
     overflow-y: auto;
 }
