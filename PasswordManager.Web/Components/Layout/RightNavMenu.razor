@@ -1,43 +1,75 @@
-﻿<div class="rightMenu">
-    <div class="userProfile">
-        <div class="userAvatar">
-            <div class="avatarCircle">JD</div>
-        </div>
-        <div class="userInfo">
-            <h3 class="userName">John Doe</h3>
-            <p class="user-email">john.doe@example.com</p>
-        </div>
-    </div>
+﻿@inject NavigationManager Navigation
 
-    <div class="statsSection">
-        <h3 class="sectionTitle">STATISTIQUES</h3>
-        <div class="statCard">
-            <i class="fa-solid fa-key statIcon"></i>
-            <div class="statInfo">
-                <div class="statValue">24</div>
-                <div class="statLabel">Mots de passe</div>
-            </div>
-        </div>
-        <div class="statCard">
-            <i class="fa-solid fa-box statIcon"></i>
-            <div class="statInfo">
-                <div class="statValue">12</div>
-                <div class="statLabel">Coffres</div>
-            </div>
-        </div>
-        <div class="statCard">
-            <i class="fa-solid fa-user-group statIcon"></i>
-            <div class="statInfo">
-                <div class="statValue">4</div>
-                <div class="statLabel">Partagés</div>
-            </div>
-        </div>
-    </div>
+<div class="rightMenu">
+    <AuthorizeView>
+        <Authorized Context="auth">
+            <div class="userProfile">
+                <div class="userAvatar">
+                    <div class="avatarCircle">
+                        @GetInitials(auth.User)
+                    </div>
+                </div>
 
-    <div class="menuFooter">
-        <button class="btn">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            Déconnexion
-        </button>
-    </div>
+                <div class="userInfo">
+                    <h3 class="userName">
+                        @GetDisplayName(auth.User)
+                    </h3>
+                    <p class="user-email">
+                        @GetEmail(auth.User)
+                    </p>
+                </div>
+            </div>
+
+            <div class="statsSection">
+                <h3 class="sectionTitle">STATISTIQUES</h3>
+
+                <div class="statCard">
+                    <i class="fa-solid fa-key statIcon"></i>
+                    <div class="statInfo">
+                        <div class="statValue">24</div>
+                        <div class="statLabel">Mots de passe</div>
+                    </div>
+                </div>
+
+                <div class="statCard">
+                    <i class="fa-solid fa-box statIcon"></i>
+                    <div class="statInfo">
+                        <div class="statValue">12</div>
+                        <div class="statLabel">Coffres</div>
+                    </div>
+                </div>
+
+                <div class="statCard">
+                    <i class="fa-solid fa-user-group statIcon"></i>
+                    <div class="statInfo">
+                        <div class="statValue">4</div>
+                        <div class="statLabel">Partagés</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menuFooter">
+                <form action="authentication/logout" method="post">
+                    <AntiforgeryToken />
+                    <input type="hidden"
+                           name="ReturnUrl"
+                           value="@Navigation.Uri" />
+
+                    <button type="submit" class="btn logoutBtn">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        Déconnexion
+                    </button>
+                </form>
+            </div>
+        </Authorized>
+
+        <NotAuthorized>
+            <div class="menuFooter">
+                <a class="btn loginBtn" href="authentication/login">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Se connecter
+                </a>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
 </div>

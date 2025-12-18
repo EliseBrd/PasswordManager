@@ -34,20 +34,3 @@
         }
     }
 }
-
-<AuthorizeView>
-    <Authorized>
-        Hello, @context.User.Identity?.Name!
-        <form action="authentication/logout" method="post">
-            <AntiforgeryToken />
-            <input type="hidden" name="ReturnUrl" value="@(Navigation.Uri)" />
-            <button type="submit" class="nav-link btn btn-link">
-                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
-            </button>
-        </form>
-    </Authorized>
-    
-    <NotAuthorized>
-        <a href="authentication/login">Log in</a>
-    </NotAuthorized>
-</AuthorizeView>

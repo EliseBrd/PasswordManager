@@ -15,14 +15,40 @@
 }
 else if (!isUnlocked)
 {
-    <div class="unlock-vault-form">
-        <h3>Déverrouiller le coffre "@vault.Name"</h3>
-        <input type="password" @bind="masterPassword" placeholder="Mot de passe du coffre" />
-        <button @onclick="UnlockVault">Déverrouiller</button>
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <p class="error-message">@errorMessage</p>
-        }
+    <div class="unlockVaultContainer">
+        <div class="unlockVaultCard">
+            <div class="unlockVaultHeader">
+                <i class="fa-solid fa-unlock"></i>
+                <h2>Déverrouiller le coffre "@vault.Name"</h2>
+                <p>Entrez le mot de passe pour accéder au coffre.</p>
+            </div>
+
+            <div class="unlockVaultForm">
+
+                <!-- MOT DE PASSE -->
+                <div class="sectionForm">
+                    <label for="vaultPassword">Mot de passe</label>
+                    <input id="vaultPassword"
+                           type="password"
+                           placeholder="Mot de passe du coffre"
+                           @bind="masterPassword"/>
+                </div>
+
+                <!-- MESSAGE D'ERREUR -->
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p class="errorMessage">@errorMessage</p>
+                }
+
+                <!-- BOUTON DÉVERROUILLER -->
+                <button type="button"
+                        class="unlockVaultBtn"
+                        @onclick="UnlockVault">
+                    <i class="fa-solid fa-check"></i>
+                    Déverrouiller
+                </button>
+            </div>
+        </div>
     </div>
 }
 else
