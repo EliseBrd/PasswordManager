@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
+using PasswordManager.Dto.Vault.Responses;
 using PasswordManager.Web.Components.Fragments;
 
 namespace PasswordManager.Web.Components.Pages;
 
 public partial class Home : ComponentBase
 {
-    private List<VaultList.VaultModel> vaults = new();
+    private List<VaultSummaryResponse> vaults = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -14,12 +15,11 @@ public partial class Home : ComponentBase
             var accessibleVaults = await VaultService.GetAccessibleVaultsAsync();
             if (accessibleVaults != null)
             {
-                vaults = accessibleVaults.Select(v => new VaultList.VaultModel
+                vaults = accessibleVaults.Select(v => new VaultSummaryResponse
                 {
                     Identifier = v.Identifier,
                     Name = v.Name,
                     IsShared = v.IsShared,
-                    Category = v.IsShared ? "Partagé" : "Personnel"
                 }).ToList();
             }
         }
