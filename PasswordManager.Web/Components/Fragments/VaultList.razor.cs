@@ -1,27 +1,21 @@
 ﻿using Microsoft.AspNetCore.Components;
+using PasswordManager.Dto.Vault.Responses;
 
 namespace PasswordManager.Web.Components.Fragments;
 
 public partial class VaultList : ComponentBase
 {
     [Parameter]
-    public List<VaultModel> Vaults { get; set; } = new();
+    public List<VaultSummaryResponse> Vaults { get; set; } = new();
 
-    private string GetBadgeClass(string category)
+    private string GetBadgeClass(bool isShared)
     {
-        return category.ToLower() switch
-        {
-            "personnel" => "badgePersonnel",
-            "partagé" => "badgePartage",
-            _ => "badgeDefault"
-        };
+        return isShared ? "badgePartage" : "badgePersonnel";
     }
 
-    public class VaultModel
+    private string GetCategoryLabel(bool isShared)
     {
-        public string Identifier { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
-        public bool IsShared { get; set; }
+        return isShared ? "Partagé" : "Personnel";
     }
+
 }
