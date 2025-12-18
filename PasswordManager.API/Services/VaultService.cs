@@ -30,7 +30,7 @@ namespace PasswordManager.API.Services
             {
                 Identifier = v.Identifier,
                 Name = v.Name,
-                IsShared = v.isShared
+                IsShared = v.IsShared
             });
         }
         
@@ -61,11 +61,11 @@ namespace PasswordManager.API.Services
                 MasterSalt = Convert.ToBase64String(masterSaltBytes),
                 Password = hashedPassword,
                 Salt = string.Empty,
-                encryptKey = encryptedVaultKey,
+                EncryptKey = encryptedVaultKey,
                 CreatorIdentifier = creatorId,
                 CreatedAt = DateTime.UtcNow,
                 LastUpdatedAt = DateTime.UtcNow,
-                isShared = false,
+                IsShared = false,
                 SharedUsers = new HashSet<AppUser> { creator } // Add creator to shared users
             };
 
@@ -141,7 +141,7 @@ namespace PasswordManager.API.Services
             if (existing == null) return false;
             existing.Name = vault.Name;
             existing.LastUpdatedAt = DateTime.UtcNow;
-            existing.isShared = vault.isShared;
+            existing.IsShared = vault.IsShared;
             await _repository.UpdateAsync(existing);
             return true;
         }
@@ -151,6 +151,38 @@ namespace PasswordManager.API.Services
             var existing = await _repository.GetByIdAsync(id);
             if (existing == null) return false;
             await _repository.DeleteAsync(id);
+            return true;
+        }
+
+        public async Task<bool> ShareVaultAsync(Guid vaultId, Guid userId)
+        {
+            var vault = await _repository.GetByIdAsync(vaultId);
+            if (vault == null)
+                return false;
+
+            if (vault.CreatorIdentifier != userId)
+                return false; // Or throw an exception for unauthorized access
+
+            vault.IsShared = true;
+            await _repository.UpdateAsync(vault);
+            return true;
+        }
+
+        public async Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userIdToAdd, Guid requestingUserId)
+        {
+            var vault = await _repository.GetByIdWithSharedUsersAsync(vaultId);
+            if (vault == null || !vault.IsShared)
+                return false;
+
+            if (vault.CreatorIdentifier != requestingUserId)
+                return false; // Or throw an exception for unauthorized access
+
+            var userToAdd = await _context.Users.FindAsync(userIdToAdd);
+            if (userToAdd == null)
+                return false;
+
+            vault.SharedUsers.Add(userToAdd);
+            await _repository.UpdateAsync(vault);
             return true;
         }
 

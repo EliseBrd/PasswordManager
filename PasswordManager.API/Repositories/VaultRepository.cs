@@ -26,6 +26,13 @@ namespace PasswordManager.API.Repositories
                 .FirstOrDefaultAsync(v => v.Identifier == id.ToString());
         }
 
+        public async Task<Vault?> GetByIdWithSharedUsersAsync(Guid id)
+        {
+            return await _context.Vaults
+                .Include(v => v.SharedUsers)
+                .FirstOrDefaultAsync(v => v.Identifier == id.ToString());
+        }
+
         public async Task<IEnumerable<Vault>> GetByUserIdAsync(Guid userId)
         {
             return await _context.Vaults

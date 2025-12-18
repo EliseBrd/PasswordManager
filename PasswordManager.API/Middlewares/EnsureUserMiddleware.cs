@@ -56,7 +56,6 @@ public class EnsureUserMiddleware
                     _logger.LogInformation("ℹUtilisateur chargé depuis la base de donnée : {entraId}", entraIdGuid);
                 }
 
-                // Optionnel : tu peux stocker l'user en Items pour y accéder dans les controllers
                 context.Items["CurrentUser"] = user;
             }
         }

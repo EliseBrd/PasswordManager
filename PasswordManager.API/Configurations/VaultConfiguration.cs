@@ -24,7 +24,7 @@ namespace PasswordManager.API.Configurations
                 .IsRequired()
                 .HasMaxLength(256);
 
-            entity.Property(v => v.encryptKey)
+            entity.Property(v => v.EncryptKey)
                 .IsRequired()
                 .HasMaxLength(512);
 
