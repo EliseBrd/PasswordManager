@@ -11,5 +11,8 @@ namespace PasswordManager.Dto.Vault.Requests
         [Required]
         [StringLength(100, MinimumLength = 8)]
         public string Password { get; set; } = string.Empty;
+
+        public string MasterSalt { get; set; } = string.Empty;
+        public string EncryptedKey { get; set; } = string.Empty;
     }
 }

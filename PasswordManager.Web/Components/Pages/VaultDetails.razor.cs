@@ -1,138 +1,152 @@
-﻿using System.Text.Json;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using PasswordManager.Dto.Vault.Requests;
 using PasswordManager.Dto.Vault.Responses;
+using PasswordManager.Web.Services;
+using System.Text.Json;
 
-namespace PasswordManager.Web.Components.Pages;
-
-public partial class VaultDetails : ComponentBase
+namespace PasswordManager.Web.Components.Pages
 {
-    [Parameter]
-    public string VaultId { get; set; } = "";
-
-    private VaultDetailsResponse? vault;
-    private string masterPassword = "";
-    private bool isUnlocked = false;
-    private string errorMessage = "";
-    private string decryptedVaultKey = ""; // Store the decrypted key here
-
-    private List<DecryptedVaultEntry> decryptedEntries = new();
-    
-    private bool showCreateForm = false;
-    private DecryptedVaultEntry newEntry = new();
-
-    protected override async Task OnInitializedAsync()
+    public partial class VaultDetails : ComponentBase, IDisposable
     {
-        try
-        {
-            vault = await VaultService.GetVaultDetailsAsync(VaultId);
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "Impossible de charger les détails du coffre.";
-            Logger.LogError(ex, "Error in OnInitializedAsync");
-        }
-    }
+        [Inject] protected VaultService VaultService { get; set; } = default!;
+        [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] protected ILogger<VaultDetails> Logger { get; set; } = default!;
 
-    private async Task UnlockVault()
-    {
-        if (vault == null || string.IsNullOrWhiteSpace(masterPassword))
-        {
-            errorMessage = "Veuillez entrer le mot de passe.";
-            return;
-        }
+        [Parameter]
+        public string VaultId { get; set; } = "";
 
-        try
-        {
-            decryptedVaultKey = await JSRuntime.InvokeAsync<string>("cryptoFunctions.deriveKeyAndDecrypt", masterPassword, vault.MasterSalt, vault.EncryptedKey);
+        protected VaultDetailsResponse? vault;
+        protected VaultUnlockResponse? unlockedVaultData;
+        protected string masterPassword = "";
+        protected bool isUnlocked = false;
+        protected string errorMessage = "";
+        
+        protected List<DecryptedVaultEntry> decryptedEntries = new();
+        
+        protected bool showCreateForm = false;
+        protected DecryptedVaultEntry newEntry = new();
 
-            foreach (var entryDto in vault.Entries)
+        protected override async Task OnInitializedAsync()
+        {
+            try
             {
-                var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", decryptedVaultKey, entryDto.EncryptedData);
-                var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (entryDetails != null)
+                vault = await VaultService.GetVaultDetailsAsync(VaultId);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "Impossible de charger les détails du coffre.";
+                Logger.LogError(ex, "Error loading vault details");
+            }
+        }
+
+        protected async Task UnlockVault()
+        {
+            if (vault == null || string.IsNullOrWhiteSpace(masterPassword))
+            {
+                errorMessage = "Veuillez entrer le mot de passe.";
+                return;
+            }
+
+            try
+            {
+                unlockedVaultData = await VaultService.UnlockVaultAsync(VaultId, masterPassword);
+
+                if (unlockedVaultData == null)
                 {
-                    entryDetails.Id = int.Parse(entryDto.Identifier); // Keep track of the real ID
-                    decryptedEntries.Add(entryDetails);
+                    errorMessage = "Mot de passe incorrect.";
+                    return;
+                }
+
+                // Initialize the key in JS memory
+                await JSRuntime.InvokeVoidAsync("cryptoFunctions.deriveKeyAndDecrypt", masterPassword, unlockedVaultData.MasterSalt, unlockedVaultData.EncryptedKey);
+                
+                // Clear password from memory immediately
+                masterPassword = "";
+
+                foreach (var entryDto in unlockedVaultData.Entries)
+                {
+                    // No need to pass the key anymore
+                    var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", entryDto.EncryptedData);
+                    var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (entryDetails != null)
+                    {
+                        entryDetails.Id = int.Parse(entryDto.Identifier);
+                        decryptedEntries.Add(entryDetails);
+                    }
+                }
+                isUnlocked = true;
+                errorMessage = "";
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "Erreur lors du déchiffrement.";
+                Logger.LogError(ex, "Error unlocking vault");
+            }
+        }
+
+        protected async Task CreateEntry()
+        {
+            if (string.IsNullOrWhiteSpace(newEntry.Title)) return;
+
+            var dataToEncrypt = new { newEntry.Title, newEntry.Username };
+            var jsonData = JsonSerializer.Serialize(dataToEncrypt);
+            
+            // No need to pass the key
+            var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", jsonData);
+            var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", newEntry.Password);
+
+            var request = new CreateVaultEntryRequest
+            {
+                VaultIdentifier = VaultId,
+                EncryptedData = encryptedData,
+                EncryptedPassword = encryptedPassword
+            };
+
+            await VaultService.CreateVaultEntryAsync(request);
+
+            decryptedEntries.Add(newEntry);
+            newEntry = new();
+            showCreateForm = false;
+        }
+
+        protected async Task ShowPassword(DecryptedVaultEntry entry)
+        {
+            if (string.IsNullOrEmpty(entry.Password))
+            {
+                var encryptedPassword = await VaultService.GetVaultEntryPasswordAsync(entry.Id);
+                if (encryptedPassword != null)
+                {
+                    // No need to pass the key
+                    entry.Password = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", encryptedPassword);
+                    StateHasChanged();
                 }
             }
-            isUnlocked = true;
-            errorMessage = "";
         }
-        catch (Exception)
+
+        protected void DeleteEntry(int id)
         {
-            errorMessage = "Mot de passe incorrect ou erreur de déchiffrement.";
+            // To be implemented
         }
-    }
 
-    private async Task CreateEntry()
-    {
-        if (string.IsNullOrWhiteSpace(newEntry.Title)) return;
-
-        // Create a version of the entry without the password for EncryptedData
-        var dataToEncrypt = new { newEntry.Title, newEntry.Username };
-        var jsonData = JsonSerializer.Serialize(dataToEncrypt);
-        var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", decryptedVaultKey, jsonData);
-
-        // Encrypt the password separately
-        var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", decryptedVaultKey, newEntry.Password);
-
-        var request = new CreateVaultEntryRequest
+        protected void ToggleShare()
         {
-            VaultIdentifier = VaultId,
-            EncryptedData = encryptedData,
-            EncryptedPassword = encryptedPassword
-        };
-
-        await VaultService.CreateVaultEntryAsync(request);
-
-        // Refresh UI (simplified)
-        decryptedEntries.Add(newEntry);
-        newEntry = new();
-        showCreateForm = false;
-    }
-
-    private async Task ShowPassword(DecryptedVaultEntry entry)
-    {
-        // If password is not already revealed
-        if (string.IsNullOrEmpty(entry.Password))
-        {
-            var encryptedPassword = await VaultService.GetVaultEntryPasswordAsync(entry.Id);
-            if (encryptedPassword != null)
-            {
-                entry.Password = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", decryptedVaultKey, encryptedPassword);
-                StateHasChanged(); // Refresh the UI to show the password
-            }
+            // To be implemented
         }
-    }
 
-    private async Task ToggleShare()
-    {
-        if (vault == null) return;
-
-        try
+        public void Dispose()
         {
-            await VaultService.ShareVaultAsync(VaultId);
-            vault.IsShared = !vault.IsShared; // Toggle the state visually
-            StateHasChanged();
+            // Clear the key from JS memory when the component is disposed (user leaves the page)
+            // Note: This is fire-and-forget because Dispose is synchronous
+            _ = JSRuntime.InvokeVoidAsync("cryptoFunctions.clearKey");
         }
-        catch (Exception)
+
+        public class DecryptedVaultEntry
         {
-            // Handle error
+            public int Id { get; set; }
+            public string Title { get; set; } = "";
+            public string Username { get; set; } = "";
+            public string Password { get; set; } = "";
         }
-    }
-
-    private void DeleteEntry(int id)
-    {
-        // To be implemented
-    }
-
-    public class DecryptedVaultEntry
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = "";
-        public string Username { get; set; } = "";
-        public string Password { get; set; } = ""; // Will be filled on demand
     }
 }

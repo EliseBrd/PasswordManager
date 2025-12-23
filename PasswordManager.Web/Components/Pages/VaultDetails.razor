@@ -5,9 +5,7 @@
 @using PasswordManager.Dto.Vault.Requests
 @using PasswordManager.Dto.Vault.Responses
 @using System.Text.Json
-@inject VaultService VaultService
-@inject IJSRuntime JSRuntime
-@inject ILogger<VaultDetails> Logger
+
 
 <PageTitle>Vault - @(vault?.Name ?? "...")</PageTitle>
 

@@ -69,8 +69,6 @@ namespace PasswordManager.Web.Components.Pages
         // =========================
         private async Task GeneratePassword()
         {
-            Console.WriteLine("➡ GeneratePassword() appelé");
-
             const string chars =
                 "abcdefghijklmnopqrstuvwxyz" +
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
@@ -141,15 +139,26 @@ namespace PasswordManager.Web.Components.Pages
         {
             if (!string.IsNullOrWhiteSpace(_vaultName) && !string.IsNullOrWhiteSpace(_vaultPassword))
             {
+                // Generate crypto material client-side
+                var cryptoResult = await Js.InvokeAsync<CryptoResult>("cryptoFunctions.createVaultCrypto", _vaultPassword);
+
                 var request = new CreateVaultRequest
                 {
                     Name = _vaultName,
-                    Password = _vaultPassword
+                    Password = _vaultPassword, // Sent for authentication hashing only
+                    MasterSalt = cryptoResult.MasterSalt,
+                    EncryptedKey = cryptoResult.EncryptedKey
                 };
 
                 await VaultService.CreateVaultAsync(request);
                 NavManager.NavigateTo("/");
             }
+        }
+
+        public class CryptoResult
+        {
+            public string MasterSalt { get; set; } = "";
+            public string EncryptedKey { get; set; } = "";
         }
     }
 }
