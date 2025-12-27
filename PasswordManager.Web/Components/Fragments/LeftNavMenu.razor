@@ -1,40 +1,81 @@
-﻿<div class="leftMenu">
+﻿@inject NavigationManager Navigation
+
+<div class="leftMenu">
     <div class="logoSection">
         <a class="logo" href="/">
             <img src="assets/logo.svg" alt="Logo" />
-            <span class="logoText">PassManager</span>
         </a>
     </div>
+<AuthorizeView>
+    <Authorized Context="auth">
 
-    <div class="menuSection">
-        <input type="text" class="searchInput" placeholder="Rechercher..." />
-    </div>
+        <!-- Profil -->
+        <div class="menuSection">
+            <div class="userProfile">
+                <div class="avatarCircle">
+                    @GetInitials(auth.User)
+                </div>
 
-    <div class="menuSection">
-        <h3 class="sectionTitle">FILTRES</h3>
-        <ul class="menuList">
-            <li class="menuItem active">
-                <i class="fa-solid fa-inbox menuIcon"></i>
-                <span>Tous les coffres</span>
-                <span class="menuCount">12</span>
-            </li>
-            <li class="menuItem">
-                <i class="fa-solid fa-lock menuIcon"></i>
-                <span>Personnels</span>
-                <span class="menuCount">8</span>
-            </li>
-            <li class="menuItem">
-                <i class="fa-solid fa-users menuIcon"></i>
-                <span>Partagés</span>
-                <span class="menuCount">4</span>
-            </li>
-        </ul>
-    </div>
+                <div class="userInfo">
+                    <h3 class="userName">@GetDisplayName(auth.User)</h3>
+                    <p class="userEmail">@GetEmail(auth.User)</p>
+                </div>
+            </div>
+        </div>
 
-    <div class="menuFooter">
-        <button type="button" class="btn" @onclick="GoToCreateVault">
-            <i class="fa-solid fa-plus"></i>
-            Nouveau coffre
-        </button>
-    </div>
+        <!-- Filtres -->
+        <div class="menuSection">
+            <h3 class="sectionTitle">FILTRES</h3>
+            <ul class="menuList">
+                <li class="menuItem active">
+                    <i class="fa-solid fa-inbox"></i>
+                    Tous les coffres
+                    <span class="menuCount">12</span>
+                </li>
+                <li class="menuItem">
+                    <i class="fa-solid fa-lock"></i>
+                    Personnels
+                    <span class="menuCount">8</span>
+                </li>
+                <li class="menuItem">
+                    <i class="fa-solid fa-users"></i>
+                    Partagés
+                    <span class="menuCount">4</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <div class="menuFooter">
+            <button class="btn" @onclick="GoToCreateVault">
+                <i class="fa-solid fa-plus"></i>
+                Nouveau coffre
+            </button>
+
+            <form action="authentication/logout" method="post">
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="@Navigation.Uri" />
+
+                <button type="submit" class="btn logoutBtn">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Déconnexion
+                </button>
+            </form>
+        </div>
+
+    </Authorized>
+
+    <NotAuthorized>
+        <div class="menuSection">
+            <p class="loginHint">
+                Connecte-toi pour accéder à tes coffres
+            </p>
+
+            <a class="btn loginBtn" href="authentication/login">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                Se connecter
+            </a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
 </div>
