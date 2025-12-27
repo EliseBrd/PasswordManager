@@ -8,7 +8,6 @@ using PasswordManager.Dto.Vault;
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
-using Microsoft.AspNetCore.Components;
 
 namespace PasswordManager.Web.Services
 {
@@ -17,7 +16,6 @@ namespace PasswordManager.Web.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ITokenAcquisition _tokenAcquisition;
         private readonly AuthenticationStateProvider _authenticationStateProvider;
-        private readonly NavigationManager _navigation;
         private readonly string _apiBaseUrl;
         private readonly string _apiScope;
         private readonly JsonSerializerOptions _jsonOptions;
@@ -26,13 +24,11 @@ namespace PasswordManager.Web.Services
             IHttpClientFactory httpClientFactory, 
             IConfiguration configuration, 
             ITokenAcquisition tokenAcquisition, 
-            AuthenticationStateProvider authenticationStateProvider,
-            NavigationManager navigation)
+            AuthenticationStateProvider authenticationStateProvider)
         {
             _httpClientFactory = httpClientFactory;
             _tokenAcquisition = tokenAcquisition;
             _authenticationStateProvider = authenticationStateProvider;
-            _navigation = navigation;
             _apiBaseUrl = configuration.GetValue<string>("WebAPI:Endpoint") ?? throw new InvalidOperationException("WebAPI endpoint is not configured");
             _apiScope = configuration.GetValue<string>("WebAPI:Scope") ?? throw new InvalidOperationException("WebAPI scope is not configured");
             _jsonOptions = new JsonSerializerOptions
@@ -48,21 +44,9 @@ namespace PasswordManager.Web.Services
             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
-            if (user.Identity?.IsAuthenticated ?? false)
-            {
-                try
-                {
-                    var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(new[] { _apiScope }, user: user);
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                }
-                catch (MicrosoftIdentityWebChallengeUserException ex)
-                {
-                    // This exception means the user needs to re-authenticate.
-                    // In Blazor Server, we need to manually redirect.
-                    _navigation.NavigateTo($"/MicrosoftIdentity/Account/SignIn", forceLoad: true);
-                }
-            }
+            var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(new[] { _apiScope }, user: user);
 
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             return client;
         }
 
@@ -80,6 +64,17 @@ namespace PasswordManager.Web.Services
             var response = await client.GetAsync($"{_apiBaseUrl}/api/vault/{vaultId}");
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<VaultDetailsResponse>(_jsonOptions);
+        }
+
+        public async Task<VaultUnlockResponse?> UnlockVaultAsync(string vaultId, string password)
+        {
+            var client = await CreateHttpClientAsync();
+            var request = new AccessVaultRequest { Password = password };
+            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault/{vaultId}/unlock", request, _jsonOptions);
+            
+            if (!response.IsSuccessStatusCode) return null;
+
+            return await response.Content.ReadFromJsonAsync<VaultUnlockResponse>(_jsonOptions);
         }
 
         public async Task<string?> GetVaultEntryPasswordAsync(int entryId)
@@ -100,13 +95,6 @@ namespace PasswordManager.Web.Services
         {
             var client = await CreateHttpClientAsync();
             var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault/entry", request, _jsonOptions);
-            response.EnsureSuccessStatusCode();
-        }
-
-        public async Task ShareVaultAsync(string vaultId)
-        {
-            var client = await CreateHttpClientAsync();
-            var response = await client.PostAsync($"{_apiBaseUrl}/api/vault/{vaultId}/share", null);
             response.EnsureSuccessStatusCode();
         }
     }

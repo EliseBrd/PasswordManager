@@ -41,32 +41,28 @@ namespace PasswordManager.API.Services
             if (!BCrypt.Net.BCrypt.Verify(password, vault.Password)) return null;
             return vault;
         }
-
-        public async Task<Vault> CreateVaultAsync(string name, string password, Guid creatorId)
+        
+        public async Task<Vault> CreateVaultAsync(CreateVaultRequest request, Guid creatorId)
         {
             var creator = await _context.Users.FindAsync(creatorId);
             if (creator == null)
                 throw new InvalidOperationException("Creator user not found.");
 
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
-            var masterSaltBytes = RandomNumberGenerator.GetBytes(64);
-            var kek = DeriveKeyFromPassword(password, masterSaltBytes);
-            var vaultKey = RandomNumberGenerator.GetBytes(32);
-            var encryptedVaultKey = EncryptKeyAesGcm(vaultKey, kek);
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             var vault = new Vault
             {
                 Identifier = Guid.NewGuid().ToString(),
-                Name = name,
-                MasterSalt = Convert.ToBase64String(masterSaltBytes),
+                Name = request.Name,
+                MasterSalt = request.MasterSalt,
                 Password = hashedPassword,
                 Salt = string.Empty,
-                EncryptKey = encryptedVaultKey,
+                EncryptKey = request.EncryptedKey,
                 CreatorIdentifier = creatorId,
                 CreatedAt = DateTime.UtcNow,
                 LastUpdatedAt = DateTime.UtcNow,
                 IsShared = false,
-                SharedUsers = new HashSet<AppUser> { creator } // Add creator to shared users
+                SharedUsers = new HashSet<AppUser> { creator }
             };
 
             await _repository.AddAsync(vault);
@@ -161,7 +157,7 @@ namespace PasswordManager.API.Services
                 return false;
 
             if (vault.CreatorIdentifier != userId)
-                return false; // Or throw an exception for unauthorized access
+                return false; 
 
             vault.IsShared = true;
             await _repository.UpdateAsync(vault);
@@ -175,7 +171,7 @@ namespace PasswordManager.API.Services
                 return false;
 
             if (vault.CreatorIdentifier != requestingUserId)
-                return false; // Or throw an exception for unauthorized access
+                return false;
 
             var userToAdd = await _context.Users.FindAsync(userIdToAdd);
             if (userToAdd == null)

@@ -47,6 +47,41 @@ namespace PasswordManager.API.Controllers
             return Ok(vault);
         }
 
+        [HttpPost("{id}/unlock")]
+        public async Task<IActionResult> UnlockVault(Guid id, [FromBody] AccessVaultRequest request)
+        {
+            var vault = await _vaultService.AccessVaultAsync(id, request.Password);
+
+            if (vault == null)
+            {
+                return Unauthorized("Invalid password.");
+            }
+
+            var response = new VaultUnlockResponse
+            {
+                MasterSalt = vault.MasterSalt,
+                EncryptedKey = vault.EncryptKey,
+                Entries = vault.Entries.Select(e => {
+                    var ivBytes = Convert.FromBase64String(e.IVData);
+                    var cypherBytes = Convert.FromBase64String(e.CypherData);
+                    var tagBytes = Convert.FromBase64String(e.TagData);
+
+                    var combinedBytes = new byte[ivBytes.Length + cypherBytes.Length + tagBytes.Length];
+                    Buffer.BlockCopy(ivBytes, 0, combinedBytes, 0, ivBytes.Length);
+                    Buffer.BlockCopy(cypherBytes, 0, combinedBytes, ivBytes.Length, cypherBytes.Length);
+                    Buffer.BlockCopy(tagBytes, 0, combinedBytes, ivBytes.Length + cypherBytes.Length, tagBytes.Length);
+                    
+                    return new VaultEntryDto
+                    {
+                        Identifier = e.Identifier.ToString(),
+                        EncryptedData = Convert.ToBase64String(combinedBytes)
+                    };
+                }).ToList()
+            };
+            
+            return Ok(response);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateVault([FromBody] CreateVaultRequest request)
         {
@@ -56,7 +91,7 @@ namespace PasswordManager.API.Controllers
                 return Unauthorized("User not found or session is invalid.");
             }
 
-            var createdVault = await _vaultService.CreateVaultAsync(request.Name, request.Password, currentUser.Identifier);
+            var createdVault = await _vaultService.CreateVaultAsync(request, currentUser.Identifier);
 
             return CreatedAtAction(nameof(GetVaultById), new { id = new Guid(createdVault.Identifier) }, createdVault);
         }
@@ -103,26 +138,8 @@ namespace PasswordManager.API.Controllers
                 Identifier = vault.Identifier,
                 Name = vault.Name,
                 CreatorIdentifier = vault.CreatorIdentifier,
-                IsCreator = vault.CreatorIdentifier == currentUser.Identifier, // Set the new property
-                IsShared = vault.IsShared,
-                MasterSalt = vault.MasterSalt,
-                EncryptedKey = vault.EncryptKey,
-                Entries = vault.Entries.Select(e => {
-                    var ivBytes = Convert.FromBase64String(e.IVData);
-                    var cypherBytes = Convert.FromBase64String(e.CypherData);
-                    var tagBytes = Convert.FromBase64String(e.TagData);
-
-                    var combinedBytes = new byte[ivBytes.Length + cypherBytes.Length + tagBytes.Length];
-                    Buffer.BlockCopy(ivBytes, 0, combinedBytes, 0, ivBytes.Length);
-                    Buffer.BlockCopy(cypherBytes, 0, combinedBytes, ivBytes.Length, cypherBytes.Length);
-                    Buffer.BlockCopy(tagBytes, 0, combinedBytes, ivBytes.Length + cypherBytes.Length, tagBytes.Length);
-                    
-                    return new VaultEntryDto
-                    {
-                        Identifier = e.Identifier.ToString(),
-                        EncryptedData = Convert.ToBase64String(combinedBytes)
-                    };
-                }).ToList()
+                IsCreator = vault.CreatorIdentifier == currentUser.Identifier,
+                IsShared = vault.IsShared
             };
             
             return Ok(response);
