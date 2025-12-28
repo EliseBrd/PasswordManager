@@ -34,6 +34,12 @@ public class EnsureUserMiddleware
             {
                 Guid entraIdGuid = Guid.Parse(objectIdClaim);
                 
+                // Récupère l'email (preferred_username est souvent le plus fiable pour Entra ID, sinon Name ou Email)
+                var email = context.User.FindFirst("preferred_username")?.Value 
+                            ?? context.User.FindFirst(ClaimTypes.Email)?.Value 
+                            ?? context.User.Identity.Name 
+                            ?? string.Empty;
+
                 // Cherche l'utilisateur en base
                 var user = await db.Users.FirstOrDefaultAsync(u => u.entraId == entraIdGuid);
 
@@ -43,16 +49,23 @@ public class EnsureUserMiddleware
                     user = new AppUser
                     {
                         Identifier = Guid.NewGuid(),
-                        entraId = entraIdGuid
+                        entraId = entraIdGuid,
+                        Email = email
                     };
                     
                     db.Users.Add(user);
                     await db.SaveChangesAsync();
                     
-                    _logger.LogInformation("Nouveau utilisateur créé : {entraId}", entraIdGuid);
+                    _logger.LogInformation("Nouveau utilisateur créé : {entraId} ({email})", entraIdGuid, email);
                 }
                 else
                 {
+                    // Met à jour l'email si nécessaire
+                    if (user.Email != email && !string.IsNullOrEmpty(email))
+                    {
+                        user.Email = email;
+                        await db.SaveChangesAsync();
+                    }
                     _logger.LogInformation("ℹUtilisateur chargé depuis la base de donnée : {entraId}", entraIdGuid);
                 }
 

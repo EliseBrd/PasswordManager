@@ -23,6 +23,7 @@ builder.Services.AddDbContext<PasswordManagerDBContext>(options =>
 // --- Repositories & Services registration ---
 builder.Services.AddScoped<IVaultRepository, VaultRepository>();
 builder.Services.AddScoped<IVaultService, VaultService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // --- Controllers & Swagger ---
 builder.Services.AddControllers()

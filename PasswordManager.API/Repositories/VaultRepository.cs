@@ -23,6 +23,7 @@ namespace PasswordManager.API.Repositories
         {
             return await _context.Vaults
                 .Include(v => v.Entries)
+                .Include(v => v.SharedUsers)
                 .FirstOrDefaultAsync(v => v.Identifier == id.ToString());
         }
 

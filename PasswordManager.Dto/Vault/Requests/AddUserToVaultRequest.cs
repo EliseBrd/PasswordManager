@@ -1,4 +1,6 @@
-﻿namespace PasswordManager.Dto.Vault.Requests
+﻿using System;
+
+namespace PasswordManager.Dto.Vault.Requests
 {
     public class AddUserToVaultRequest
     {

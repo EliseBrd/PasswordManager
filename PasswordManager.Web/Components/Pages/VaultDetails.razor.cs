@@ -25,6 +25,7 @@ namespace PasswordManager.Web.Components.Pages
         protected List<DecryptedVaultEntry> decryptedEntries = new();
         
         protected bool showCreateForm = false;
+        protected bool showShareModal = false;
         protected DecryptedVaultEntry newEntry = new();
 
         protected override async Task OnInitializedAsync()
@@ -58,15 +59,13 @@ namespace PasswordManager.Web.Components.Pages
                     return;
                 }
 
-                // Initialize the key in JS memory
                 await JSRuntime.InvokeVoidAsync("cryptoFunctions.deriveKeyAndDecrypt", masterPassword, unlockedVaultData.MasterSalt, unlockedVaultData.EncryptedKey);
                 
-                // Clear password from memory immediately
                 masterPassword = "";
 
+                decryptedEntries.Clear();
                 foreach (var entryDto in unlockedVaultData.Entries)
                 {
-                    // No need to pass the key anymore
                     var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", entryDto.EncryptedData);
                     var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (entryDetails != null)
@@ -77,6 +76,7 @@ namespace PasswordManager.Web.Components.Pages
                 }
                 isUnlocked = true;
                 errorMessage = "";
+                StateHasChanged();
             }
             catch (Exception ex)
             {
@@ -92,7 +92,6 @@ namespace PasswordManager.Web.Components.Pages
             var dataToEncrypt = new { newEntry.Title, newEntry.Username };
             var jsonData = JsonSerializer.Serialize(dataToEncrypt);
             
-            // No need to pass the key
             var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", jsonData);
             var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", newEntry.Password);
 
@@ -117,7 +116,6 @@ namespace PasswordManager.Web.Components.Pages
                 var encryptedPassword = await VaultService.GetVaultEntryPasswordAsync(entry.Id);
                 if (encryptedPassword != null)
                 {
-                    // No need to pass the key
                     entry.Password = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", encryptedPassword);
                     StateHasChanged();
                 }
@@ -131,13 +129,19 @@ namespace PasswordManager.Web.Components.Pages
 
         protected void ToggleShare()
         {
-            // To be implemented
+            showShareModal = !showShareModal;
+        }
+
+        protected void OnSharingChanged(bool isShared)
+        {
+            if (vault != null)
+            {
+                vault.IsShared = isShared;
+            }
         }
 
         public void Dispose()
         {
-            // Clear the key from JS memory when the component is disposed (user leaves the page)
-            // Note: This is fire-and-forget because Dispose is synchronous
             _ = JSRuntime.InvokeVoidAsync("cryptoFunctions.clearKey");
         }
 
