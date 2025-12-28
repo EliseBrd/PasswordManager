@@ -3,6 +3,8 @@
 @using PasswordManager.Web.Components.Vault
 @using PasswordManager.Web.Components.Modals
 
+@inject NavigationManager Navigation
+
 <PageTitle>Vault - @(vault?.Name ?? "...")</PageTitle>
 
 @if (vault == null)
@@ -20,15 +22,21 @@ else if (!isUnlocked)
 }
 else
 {
-    <h1 class="titleHome">
-        @vault.Name
+    <button class="btn btn-back" @onclick="GoBack">
+        <i class="fa-solid fa-arrow-left"></i>
+        Retour
+    </button>
+    <div class="vaultDetailsHeader">
+        <h1 class="titleHome"><i class="fa-solid fa-unlock"></i> @vault.Name</h1>
         @if (vault.IsCreator)
-        {
-            <button class="btn @(vault.IsShared ? "btn-success" : "btn-secondary")" @onclick="ToggleShare">
-                @(vault.IsShared ? "Partagé" : "Partager")
+         {
+         <button class="btnShare @(vault.IsShared ? "btn-success" : "btn-secondary")" @onclick="ToggleShare">
+            @(vault.IsShared ? "Partagé" : "Partager")
             </button>
-        }
-    </h1>
+        } 
+    </div>
+    
+    
     <div class="btnAddContainer" @onclick="() => showCreateForm = !showCreateForm">
         <button class="btnAdd">Ajouter une entrée</button>
         <i class="fa-solid fa-plus"></i>

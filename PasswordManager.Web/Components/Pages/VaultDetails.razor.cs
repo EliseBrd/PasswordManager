@@ -152,5 +152,11 @@ namespace PasswordManager.Web.Components.Pages
             public string Username { get; set; } = "";
             public string Password { get; set; } = "";
         }
+        
+        private void GoBack()
+        {
+            Navigation.NavigateTo("/");
+        }
+
     }
 }

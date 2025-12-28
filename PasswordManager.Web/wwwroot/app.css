@@ -50,6 +50,13 @@ body {
 }
 
 .titleHome {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 20px;
     font-weight: 400;
+    color: var(--text-primary);
+}
+.titleHome i {
+    font-size: 2rem;
 }
