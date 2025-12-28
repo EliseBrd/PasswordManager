@@ -1,0 +1,32 @@
+﻿<div class="unlockVaultContainer">
+    <div class="unlockVaultCard">
+        <div class="unlockVaultHeader">
+            <i class="fa-solid fa-unlock"></i>
+            <h2>Déverrouiller le coffre "@VaultName"</h2>
+            <p>Entrez le mot de passe pour accéder au coffre.</p>
+        </div>
+
+        <div class="unlockVaultForm">
+
+            <div class="sectionForm">
+                <label for="vaultPassword">Mot de passe</label>
+                <input type="password"
+                       placeholder="Mot de passe du coffre"
+                       value="@MasterPassword"
+                       @oninput="OnPasswordChanged" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <p class="errorMessage">@ErrorMessage</p>
+            }
+
+            <button type="button"
+                    class="unlockVaultBtn"
+                    @onclick="OnUnlock">
+                <i class="fa-solid fa-lock-open"></i>
+                Déverrouiller
+            </button>
+        </div>
+    </div>
+</div>

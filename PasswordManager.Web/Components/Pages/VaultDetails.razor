@@ -1,6 +1,9 @@
 ﻿@page "/vault/{VaultId}"
 @using PasswordManager.Web.Components.Fragments
 @using PasswordManager.Web.Components.Vault
+@using PasswordManager.Web.Components.Modals
+
+@inject NavigationManager Navigation
 
 <PageTitle>Vault - @(vault?.Name ?? "...")</PageTitle>
 
@@ -10,54 +13,34 @@
 }
 else if (!isUnlocked)
 {
-    <div class="unlockVaultContainer">
-        <div class="unlockVaultCard">
-            <div class="unlockVaultHeader">
-                <i class="fa-solid fa-unlock"></i>
-                <h2>Déverrouiller le coffre "@vault.Name"</h2>
-                <p>Entrez le mot de passe pour accéder au coffre.</p>
-            </div>
-
-            <div class="unlockVaultForm">
-
-                <!-- MOT DE PASSE -->
-                <div class="sectionForm">
-                    <label for="vaultPassword">Mot de passe</label>
-                    <input id="vaultPassword"
-                           type="password"
-                           placeholder="Mot de passe du coffre"
-                           @bind="masterPassword"/>
-                </div>
-
-                <!-- MESSAGE D'ERREUR -->
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <p class="errorMessage">@errorMessage</p>
-                }
-
-                <!-- BOUTON DÉVERROUILLER -->
-                <button type="button"
-                        class="unlockVaultBtn"
-                        @onclick="UnlockVault">
-                    <i class="fa-solid fa-check"></i>
-                    Déverrouiller
-                </button>
-            </div>
-        </div>
-    </div>
+    <OpenVaultModal
+        VaultName="@vault.Name"
+        MasterPassword="@masterPassword"
+        MasterPasswordChanged="@((string v) => masterPassword = v)"
+        ErrorMessage="@errorMessage"
+        OnUnlock="UnlockVault" />
 }
 else
 {
-    <h1 class="titleHome">
-        @vault.Name
+    <button class="btn btn-back" @onclick="GoBack">
+        <i class="fa-solid fa-arrow-left"></i>
+        Retour
+    </button>
+    <div class="vaultDetailsHeader">
+        <h1 class="titleHome"><i class="fa-solid fa-unlock"></i> @vault.Name</h1>
         @if (vault.IsCreator)
-        {
-            <button class="btn @(vault.IsShared ? "btn-success" : "btn-secondary")" @onclick="ToggleShare">
-                @(vault.IsShared ? "Partagé" : "Partager")
+         {
+         <button class="btnShare @(vault.IsShared ? "btn-success" : "btn-secondary")" @onclick="ToggleShare">
+            @(vault.IsShared ? "Partagé" : "Partager")
             </button>
-        }
-    </h1>
-    <button @onclick="() => showCreateForm = !showCreateForm">Ajouter une entrée</button>
+        } 
+    </div>
+    
+    
+    <div class="btnAddContainer" @onclick="() => showCreateForm = !showCreateForm">
+        <button class="btnAdd">Ajouter une entrée</button>
+        <i class="fa-solid fa-plus"></i>
+    </div>
 
     @if (showCreateForm)
     {
