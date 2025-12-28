@@ -4,6 +4,7 @@ using PasswordManager.API.Objects;
 using PasswordManager.API.Services.Interfaces;
 using PasswordManager.Dto.Vault.Requests;
 using PasswordManager.Dto.Vault.Responses;
+using PasswordManager.Dto.User;
 using System;
 using System.Linq;
 
@@ -139,10 +140,33 @@ namespace PasswordManager.API.Controllers
                 Name = vault.Name,
                 CreatorIdentifier = vault.CreatorIdentifier,
                 IsCreator = vault.CreatorIdentifier == currentUser.Identifier,
-                IsShared = vault.IsShared
+                IsShared = vault.IsShared,
+                SharedWith = vault.SharedUsers.Select(u => new UserSummaryResponse
+                {
+                    Identifier = u.Identifier,
+                    Email = u.Email
+                }).ToList()
             };
             
             return Ok(response);
+        }
+
+        [HttpPut("{id}/sharing")]
+        public async Task<IActionResult> UpdateVaultSharing(Guid id, [FromBody] UpdateVaultSharingRequest request)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
+
+            var success = await _vaultService.UpdateVaultSharingAsync(id, request.IsShared, currentUser.Identifier);
+            if (!success)
+            {
+                return Forbid("You are not authorized to update this vault or the vault does not exist.");
+            }
+
+            return NoContent();
         }
 
         [HttpPost("{id}/share")]
@@ -176,6 +200,24 @@ namespace PasswordManager.API.Controllers
             if (!success)
             {
                 return Forbid("You are not authorized to add users to this vault, the vault is not shared, or the user to add does not exist.");
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}/users/{userId}")]
+        public async Task<IActionResult> RemoveUserFromVault(Guid id, Guid userId)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
+
+            var success = await _vaultService.RemoveUserFromVaultAsync(id, userId, currentUser.Identifier);
+            if (!success)
+            {
+                return Forbid("You are not authorized to remove users from this vault, or the user does not exist.");
             }
 
             return NoContent();

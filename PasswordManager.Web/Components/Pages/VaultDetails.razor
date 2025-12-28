@@ -1,11 +1,6 @@
 ﻿@page "/vault/{VaultId}"
-@using System.Security.Claims
 @using PasswordManager.Web.Components.Fragments
-@using PasswordManager.Web.Services
-@using PasswordManager.Dto.Vault.Requests
-@using PasswordManager.Dto.Vault.Responses
-@using System.Text.Json
-
+@using PasswordManager.Web.Components.Vault
 
 <PageTitle>Vault - @(vault?.Name ?? "...")</PageTitle>
 
@@ -73,6 +68,15 @@ else
             <input @bind="newEntry.Password" placeholder="Mot de passe" />
             <button @onclick="CreateEntry">Enregistrer</button>
         </div>
+    }
+
+    @if (showShareModal)
+    {
+        <AddUserModal VaultId="@VaultId" 
+                      ExistingUsers="@vault.SharedWith" 
+                      IsShared="@vault.IsShared"
+                      OnSharingChanged="@OnSharingChanged"
+                      OnClose="ToggleShare" />
     }
 
     <div class="vaultEntries">

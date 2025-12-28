@@ -142,6 +142,20 @@ namespace PasswordManager.API.Services
             return true;
         }
 
+        public async Task<bool> UpdateVaultSharingAsync(Guid vaultId, bool isShared, Guid requestingUserId)
+        {
+            var vault = await _repository.GetByIdAsync(vaultId);
+            if (vault == null)
+                return false;
+
+            if (vault.CreatorIdentifier != requestingUserId)
+                return false;
+
+            vault.IsShared = isShared;
+            await _repository.UpdateAsync(vault);
+            return true;
+        }
+
         public async Task<bool> DeleteAsync(Guid id)
         {
             var existing = await _repository.GetByIdAsync(id);
@@ -152,16 +166,7 @@ namespace PasswordManager.API.Services
 
         public async Task<bool> ShareVaultAsync(Guid vaultId, Guid userId)
         {
-            var vault = await _repository.GetByIdAsync(vaultId);
-            if (vault == null)
-                return false;
-
-            if (vault.CreatorIdentifier != userId)
-                return false; 
-
-            vault.IsShared = true;
-            await _repository.UpdateAsync(vault);
-            return true;
+            return await UpdateVaultSharingAsync(vaultId, true, userId);
         }
 
         public async Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userIdToAdd, Guid requestingUserId)
@@ -178,6 +183,28 @@ namespace PasswordManager.API.Services
                 return false;
 
             vault.SharedUsers.Add(userToAdd);
+            await _repository.UpdateAsync(vault);
+            return true;
+        }
+
+        public async Task<bool> RemoveUserFromVaultAsync(Guid vaultId, Guid userIdToRemove, Guid requestingUserId)
+        {
+            var vault = await _repository.GetByIdWithSharedUsersAsync(vaultId);
+            if (vault == null)
+                return false;
+
+            if (vault.CreatorIdentifier != requestingUserId)
+                return false;
+
+            var userToRemove = vault.SharedUsers.FirstOrDefault(u => u.Identifier == userIdToRemove);
+            if (userToRemove == null)
+                return false;
+
+            // Cannot remove the creator
+            if (userToRemove.Identifier == vault.CreatorIdentifier)
+                return false;
+
+            vault.SharedUsers.Remove(userToRemove);
             await _repository.UpdateAsync(vault);
             return true;
         }
