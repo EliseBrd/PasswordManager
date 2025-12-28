@@ -24,7 +24,8 @@ else
 
 // --- Blazor Components ---
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    .AddMicrosoftIdentityConsentHandler(); 
 
 var apiEndpoint = builder.Configuration.GetValue<string>("WebAPI:Endpoint") ??
                   throw new InvalidOperationException("WebAPI is not configured");
@@ -54,7 +55,6 @@ builder.Services.AddCascadingAuthenticationState();
 
 // --- Application Services ---
 builder.Services.AddScoped<VaultService>();
-builder.Services.AddScoped<UserService>();
 
 
 var app = builder.Build();

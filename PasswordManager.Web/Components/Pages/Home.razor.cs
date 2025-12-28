@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.Identity.Web;
 using PasswordManager.Dto.Vault.Responses;
-using PasswordManager.Web.Components.Fragments;
+using PasswordManager.Web.Services;
 
 namespace PasswordManager.Web.Components.Pages;
 
 public partial class Home : ComponentBase
 {
+    [Inject] protected VaultService VaultService { get; set; } = default!;
+    [Inject] protected MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler { get; set; } = default!;
+
     private List<VaultSummaryResponse> vaults = new();
 
     protected override async Task OnInitializedAsync()
@@ -15,17 +19,15 @@ public partial class Home : ComponentBase
             var accessibleVaults = await VaultService.GetAccessibleVaultsAsync();
             if (accessibleVaults != null)
             {
-                vaults = accessibleVaults.Select(v => new VaultSummaryResponse
-                {
-                    Identifier = v.Identifier,
-                    Name = v.Name,
-                    IsShared = v.IsShared,
-                }).ToList();
+                vaults = accessibleVaults.ToList();
             }
+        }
+        catch (MicrosoftIdentityWebChallengeUserException ex)
+        {
+            ConsentHandler.HandleException(ex);
         }
         catch (Exception ex)
         {
-            // Handle error, e.g., show a message
             Console.WriteLine($"Error fetching vaults: {ex.Message}");
         }
     }
