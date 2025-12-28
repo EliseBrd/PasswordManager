@@ -9,7 +9,7 @@
     @if (showMenu)
     {
         <div class="vaultMenu">
-            <button class="deleteBtn" @onclick="OnDelete">
+            <button class="deleteBtn" @onclick="() => OnDelete()">
                 <i class="fa-solid fa-trash"></i> Supprimer
             </button>
         </div>

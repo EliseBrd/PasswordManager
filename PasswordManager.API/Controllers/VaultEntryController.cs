@@ -26,13 +26,11 @@ namespace PasswordManager.API.Controllers
             return Ok(new { message = "Vault entry list" });
         }
 
-        [HttpDelete]
-        public IActionResult deleteVaultEntry()
+        [HttpDelete("{identifier:guid}")]
+        public async Task<IActionResult> DeleteVaultEntry(Guid identifier)
         {
-            return Ok(new { message = "Vault entry deleted" }); 
+            // await vaultEntryService.DeleteAsync(identifier);
+            return Ok(new { message = "Vault entry deleted" });
         }
-    
-
-
     }
 } 

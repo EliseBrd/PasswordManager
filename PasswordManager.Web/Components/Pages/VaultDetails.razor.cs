@@ -10,6 +10,7 @@ namespace PasswordManager.Web.Components.Pages
     public partial class VaultDetails : ComponentBase, IDisposable
     {
         [Inject] protected VaultService VaultService { get; set; } = default!;
+        [Inject] protected VaultEntryService VaultEntryService { get; set; } = default!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] protected ILogger<VaultDetails> Logger { get; set; } = default!;
 
@@ -70,7 +71,7 @@ namespace PasswordManager.Web.Components.Pages
                     var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (entryDetails != null)
                     {
-                        entryDetails.Id = int.Parse(entryDto.Identifier);
+                        entryDetails.Identifier = Guid.Parse(entryDto.Identifier);
                         decryptedEntries.Add(entryDetails);
                     }
                 }
@@ -102,7 +103,7 @@ namespace PasswordManager.Web.Components.Pages
                 EncryptedPassword = encryptedPassword
             };
 
-            await VaultService.CreateVaultEntryAsync(request);
+            await VaultEntryService.CreateVaultEntryAsync(request);
 
             decryptedEntries.Add(newEntry);
             newEntry = new();
@@ -111,21 +112,26 @@ namespace PasswordManager.Web.Components.Pages
 
         protected async Task ShowPassword(DecryptedVaultEntry entry)
         {
-            if (string.IsNullOrEmpty(entry.Password))
+            if (!string.IsNullOrEmpty(entry.Password))
+                return;
+
+            var encryptedPassword =
+                await VaultEntryService.GetVaultEntryPasswordAsync(entry.Identifier);
+
+            if (encryptedPassword != null)
             {
-                var encryptedPassword = await VaultService.GetVaultEntryPasswordAsync(entry.Id);
-                if (encryptedPassword != null)
-                {
-                    entry.Password = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", encryptedPassword);
-                    StateHasChanged();
-                }
+                entry.Password =
+                    await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", encryptedPassword);
+
+                StateHasChanged();
             }
         }
 
-        protected void DeleteEntry(int id)
+        protected void DeleteEntry(Guid identifier)
         {
-            // To be implemented
+            decryptedEntries.RemoveAll(e => e.Identifier == identifier);
         }
+
 
         protected void ToggleShare()
         {
@@ -147,7 +153,7 @@ namespace PasswordManager.Web.Components.Pages
 
         public class DecryptedVaultEntry
         {
-            public int Id { get; set; }
+            public Guid Identifier { get; set; }
             public string Title { get; set; } = "";
             public string Username { get; set; } = "";
             public string Password { get; set; } = "";

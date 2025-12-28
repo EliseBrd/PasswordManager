@@ -65,12 +65,15 @@ else
     <div class="vaultEntries">
         @foreach (var entry in decryptedEntries)
         {
-            <VaultEntry Title="@entry.Title"
-                        Username="@entry.Username"
-                        Password="@entry.Password"
-                        OnShowPassword="@(() => ShowPassword(entry))"
-                        Category=""
-                        OnDelete="@(() => DeleteEntry(entry.Id))" />
+            <VaultEntry
+                Identifier="@entry.Identifier"
+                Title="@entry.Title"
+                Username="@entry.Username"
+                Password="@entry.Password"
+                OnDeleted="DeleteEntry"
+                OnShowPassword="@(() => ShowPassword(entry))"
+            />
+
         }
     </div>
 }
