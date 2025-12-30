@@ -32,7 +32,7 @@ public class VaultEntryService
             };
         }
         
-        public async Task<string?> GetVaultEntryPasswordAsync(Guid identifier)
+        public async Task<string?> GetVaultEntryPasswordAsync(int identifier)
         {
             var client = await CreateHttpClientAsync();
 
@@ -65,13 +65,11 @@ public class VaultEntryService
             response.EnsureSuccessStatusCode();
         }
         
-        public  async Task DeleteVaultEntryAsync(Guid identifier)
+        public async Task DeleteVaultEntryAsync(int identifier)
         {
             var client = await CreateHttpClientAsync();
-
             var response = await client.DeleteAsync(
-                $"{_apiBaseUrl}/api/vault/entry/{identifier}");
-
+                $"{_apiBaseUrl}/api/vaultentries/{identifier}");
             response.EnsureSuccessStatusCode();
         }
 }

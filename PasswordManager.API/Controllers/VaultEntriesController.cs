@@ -31,7 +31,7 @@ namespace PasswordManager.API.Controllers
 
         // GET /api/vaultentries/{id} : Recherche une entrée de coffre par son identifiant unique (GUID)
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetEntryById(Guid id)
+        public async Task<IActionResult> GetEntryById(int id)
         {
             var entry = await _vaultEntryService.GetByIdAsync(id);
 
@@ -68,14 +68,22 @@ namespace PasswordManager.API.Controllers
         }
 
         // DELETE /api/vaultentries/{id} : Supprimer une entrée dans un coffre
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEntry(Guid id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteEntry(int id)
         {
-            var success = await _vaultEntryService.DeleteEntryAsync(id);
-            if (!success)
-                return NotFound();
+            try
+            {
+                var success = await _vaultEntryService.DeleteEntryAsync(id);
+                if (!success)
+                    return NotFound();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception DELETE VaultEntry {id}: {ex}");
+                return StatusCode(500, ex.Message);
+            }
         }
 
     }

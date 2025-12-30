@@ -71,7 +71,8 @@ namespace PasswordManager.Web.Components.Pages
                     var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     if (entryDetails != null)
                     {
-                        entryDetails.Identifier = Guid.Parse(entryDto.Identifier);
+                        entryDetails.Identifier = entryDto.Identifier;
+
                         decryptedEntries.Add(entryDetails);
                     }
                 }
@@ -127,11 +128,14 @@ namespace PasswordManager.Web.Components.Pages
             }
         }
 
-        protected void DeleteEntry(Guid identifier)
+        private async Task DeleteEntry(int entryId)
         {
-            decryptedEntries.RemoveAll(e => e.Identifier == identifier);
-        }
+            await VaultEntryService.DeleteVaultEntryAsync(entryId);
 
+            decryptedEntries.RemoveAll(e => e.Identifier == entryId);
+
+            StateHasChanged();
+        }
 
         protected void ToggleShare()
         {
@@ -153,7 +157,7 @@ namespace PasswordManager.Web.Components.Pages
 
         public class DecryptedVaultEntry
         {
-            public Guid Identifier { get; set; }
+            public int Identifier { get; set; }
             public string Title { get; set; } = "";
             public string Username { get; set; } = "";
             public string Password { get; set; } = "";

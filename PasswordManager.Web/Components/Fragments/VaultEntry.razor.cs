@@ -6,12 +6,12 @@ namespace PasswordManager.Web.Components.Fragments;
 
 public partial class VaultEntry : ComponentBase
 {
-    [Parameter] public Guid Identifier { get; set; }
+    [Parameter] public int Identifier { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Username { get; set; } = "";
     [Parameter] public string Password { get; set; } = "";
     [Parameter] public string Category { get; set; } = "Default";
-    [Parameter] public EventCallback<Guid> OnDeleted { get; set; }
     [Parameter] public EventCallback OnShowPassword { get; set; }
     
     [Inject] public VaultEntryService VaultEntryService { get; set; } = default!;
@@ -24,12 +24,9 @@ public partial class VaultEntry : ComponentBase
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
     
-    private async Task OnDelete()
+    private async Task Delete()
     {
-        await VaultEntryService.DeleteVaultEntryAsync(Identifier);
-
-        // Mise à jour UI locale
-        await OnDeleted.InvokeAsync(Identifier);
+        await OnDelete.InvokeAsync(Identifier);
     }
 
 
