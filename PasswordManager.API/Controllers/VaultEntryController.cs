@@ -4,6 +4,7 @@ using PasswordManager.API.Context;
 using PasswordManager.API.Objects;
 using PasswordManager.API.Services.Interfaces;
 using PasswordManager.Dto.Vault;
+using PasswordManager.Dto.Vault.Requests;
 
 namespace PasswordManager.API.Controllers
 {
@@ -12,47 +13,30 @@ namespace PasswordManager.API.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class VaultEntriesController : ControllerBase
+    public class VaultEntryController : ControllerBase
     {
         private readonly IVaultEntryService _vaultEntryService;
 
-        public VaultEntriesController(IVaultEntryService vaultEntryService)
+        public VaultEntryController(IVaultEntryService vaultEntryService)
         {
             _vaultEntryService = vaultEntryService;
         }
-
-        //Récupérer toutes les entrées d’un coffre par son identifiant (VaultIdentifier)
-        [HttpGet("vault/{vaultId}")]
-        public async Task<IActionResult> GetEntriesByVaultId(Guid vaultId)
-        {
-            var entries = await _vaultEntryService.GetEntriesByVaultIdAsync(vaultId);
-            return Ok(entries);
-        }
-
-        // GET /api/vaultentries/{id} : Recherche une entrée de coffre par son identifiant unique (GUID)
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetEntryById(int id)
-        {
-            var entry = await _vaultEntryService.GetByIdAsync(id);
-
-            if (entry == null)
-                return NotFound();
-
-            return Ok(entry);
-        }
-
-        // POST /api/vaultentries : Créer une nouvelle entrée dans un coffre
+        
         [HttpPost]
-        public async Task<IActionResult> CreateEntry([FromBody] VaultEntry entry)
+        public async Task<IActionResult> CreateVaultEntry([FromBody] CreateVaultEntryRequest request)
         {
-            if (entry == null)
-                return BadRequest("Invalid entry.");
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
 
-            var created = await _vaultEntryService.CreateEntryAsync(entry);
-            return CreatedAtAction(nameof(GetEntriesByVaultId),
-                new { vaultId = created.VaultIdentifier }, created);
+            var createdEntry = await _vaultEntryService.CreateEntryAsync(request, currentUser.Identifier);
+
+            return Ok(createdEntry.Identifier);
         }
-
+        
+        
         // PUT /api/vaultentries/{id} : Modifier une entrée dans un coffre
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEntry(Guid id, [FromBody] VaultEntry entry)
@@ -84,6 +68,15 @@ namespace PasswordManager.API.Controllers
                 Console.WriteLine($"Exception DELETE VaultEntry {id}: {ex}");
                 return StatusCode(500, ex.Message);
             }
+        }
+        
+        // GET /api/vaultentries/{id}/password : Récupérer le mot de passe d'une entrée dans un coffre
+        [HttpGet("entry/{id}/password")]
+        public async Task<IActionResult> GetVaultEntryPassword(int id)
+        {
+            var encryptedPassword = await _vaultEntryService.GetEntryPasswordAsync(id);
+            if (encryptedPassword == null) return NotFound();
+            return Ok(new { encryptedPassword });
         }
 
     }

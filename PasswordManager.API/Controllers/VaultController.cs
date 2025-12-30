@@ -101,27 +101,7 @@ namespace PasswordManager.API.Controllers
             return CreatedAtAction(nameof(GetVaultById), new { id = new Guid(createdVault.Identifier) }, createdVault);
         }
 
-        [HttpPost("entry")]
-        public async Task<IActionResult> CreateVaultEntry([FromBody] CreateVaultEntryRequest request)
-        {
-            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
-            if (currentUser == null)
-            {
-                return Unauthorized("User not found or session is invalid.");
-            }
-
-            var createdEntry = await _vaultService.CreateVaultEntryAsync(request, currentUser.Identifier);
-
-            return CreatedAtAction(nameof(GetVaultById), new { id = new Guid(createdEntry.VaultIdentifier) }, createdEntry);
-        }
-
-        [HttpGet("entry/{id}/password")]
-        public async Task<IActionResult> GetVaultEntryPassword(int id)
-        {
-            var encryptedPassword = await _vaultService.GetVaultEntryPasswordAsync(id);
-            if (encryptedPassword == null) return NotFound();
-            return Ok(new { encryptedPassword });
-        }
+        
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVaultById(Guid id)

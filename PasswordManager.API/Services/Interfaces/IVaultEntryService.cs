@@ -7,12 +7,9 @@ namespace PasswordManager.API.Services.Interfaces
     // Il encapsule la logique et les règles d'application
     public interface IVaultEntryService
     {
-        /*Task<IEnumerable<VaultEntry>> GetEntriesByVaultIdAsync(Guid vaultId);*/
-        Task<VaultEntry?> GetByIdAsync(int id);
-        /*Task<VaultEntry> CreateEntryAsync(VaultEntry entry);*/
         Task<bool> UpdateEntryAsync(VaultEntry entry);
         Task<bool> DeleteEntryAsync(int id);
-        Task<VaultEntry> CreateVaultEntryAsync(CreateVaultEntryRequest request, Guid creatorId);
-        Task<string?> GetVaultEntryPasswordAsync(int entryId);
+        Task<VaultEntry> CreateEntryAsync(CreateVaultEntryRequest request, Guid creatorId);
+        Task<string?> GetEntryPasswordAsync(int entryId);
     }
 }

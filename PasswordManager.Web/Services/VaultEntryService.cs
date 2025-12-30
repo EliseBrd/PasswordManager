@@ -32,7 +32,7 @@ public class VaultEntryService
             };
         }
         
-        public async Task<string?> GetVaultEntryPasswordAsync(int identifier)
+        public async Task<string?> GetEntryPasswordAsync(int identifier)
         {
             var client = await CreateHttpClientAsync();
 
@@ -58,10 +58,10 @@ public class VaultEntryService
             return client;
         }
         
-        public  async Task CreateVaultEntryAsync(CreateVaultEntryRequest request)
+        public  async Task CreateEntryAsync(CreateVaultEntryRequest request)
         {
             var client = await CreateHttpClientAsync();
-            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault/entry", request, _jsonOptions);
+            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/VaultEntry", request, _jsonOptions);
             response.EnsureSuccessStatusCode();
         }
         
@@ -69,7 +69,7 @@ public class VaultEntryService
         {
             var client = await CreateHttpClientAsync();
             var response = await client.DeleteAsync(
-                $"{_apiBaseUrl}/api/vaultentries/{identifier}");
+                $"{_apiBaseUrl}/api/VaultEntry/{identifier}");
             response.EnsureSuccessStatusCode();
         }
 }

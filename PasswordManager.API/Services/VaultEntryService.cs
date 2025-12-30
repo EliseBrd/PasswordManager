@@ -1,5 +1,6 @@
 ﻿using PasswordManager.API;
 using PasswordManager.API.Context;
+using PasswordManager.API.Objects;
 using PasswordManager.API.Services.Interfaces;
 using PasswordManager.Dto.Vault.Requests;
 
@@ -13,7 +14,7 @@ public class VaultEntryService : IVaultEntryService
         _context = context;
     }
 
-    public async Task<VaultEntry> CreateVaultEntryAsync(CreateVaultEntryRequest request, Guid creatorId)
+    public async Task<VaultEntry> CreateEntryAsync(CreateVaultEntryRequest request, Guid creatorId)
     {
         // Split EncryptedData
         var dataBytes = Convert.FromBase64String(request.EncryptedData);
@@ -53,7 +54,7 @@ public class VaultEntryService : IVaultEntryService
         return entry;
     }
     
-    public async Task<string?> GetVaultEntryPasswordAsync(int entryId)
+    public async Task<string?> GetEntryPasswordAsync(int entryId)
     {
         var entry = await _context.VaultEntries.FindAsync(entryId);
         if (entry == null) return null;
@@ -78,6 +79,13 @@ public class VaultEntryService : IVaultEntryService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    //fonction de modification vide pour avoir une réponse a la définition de l'interface IVaultEntryService
+    public async Task<bool> UpdateEntryAsync(VaultEntry entry)
+    {
+        return true;
+    }
+    
 
     private byte[] CombineBytes(string iv, string cipher, string tag)
     {

@@ -104,7 +104,7 @@ namespace PasswordManager.Web.Components.Pages
                 EncryptedPassword = encryptedPassword
             };
 
-            await VaultEntryService.CreateVaultEntryAsync(request);
+            await VaultEntryService.CreateEntryAsync(request);
 
             decryptedEntries.Add(newEntry);
             newEntry = new();
@@ -117,7 +117,7 @@ namespace PasswordManager.Web.Components.Pages
                 return;
 
             var encryptedPassword =
-                await VaultEntryService.GetVaultEntryPasswordAsync(entry.Identifier);
+                await VaultEntryService.GetEntryPasswordAsync(entry.Identifier);
 
             if (encryptedPassword != null)
             {
