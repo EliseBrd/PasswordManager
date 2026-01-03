@@ -2,7 +2,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--bg-secondary, #f9fafb);
 }
 
 .unlockVaultCard {
