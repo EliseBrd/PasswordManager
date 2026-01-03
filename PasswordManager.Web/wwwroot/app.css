@@ -40,6 +40,13 @@
 button {
     border: none;
     background: none;
+    text-decoration: none;
+}
+
+button:focus:not(:focus-visible),
+.btn:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
 }
 
 body {
@@ -60,3 +67,4 @@ body {
 .titleHome i {
     font-size: 2rem;
 }
+

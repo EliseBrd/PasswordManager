@@ -1,0 +1,19 @@
+﻿<div class="modal fade" tabindex="-1" style="display:@(IsVisible ? "block" : "none")" 
+     aria-modal="true" role="dialog" @(IsVisible ? "show" : "")>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Title</h5>
+                <button type="button" class="btn-close" @onclick="Cancel"></button>
+            </div>
+            <div class="modal-body">
+                <p>@Message</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Cancel">Annuler</button>
+                <button class="btn btn-danger" @onclick="Confirm">Supprimer</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade @(IsVisible ? "show" : "")"></div>
+</div>

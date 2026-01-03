@@ -17,8 +17,7 @@ public partial class VaultEntry : ComponentBase
     [Inject] public VaultEntryService VaultEntryService { get; set; } = default!;
     
     [Inject] IJSRuntime JS { get; set; } = default!;
-
-    private bool showMenu = false;
+    
     private async Task Copy(string text)
     {
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
@@ -29,17 +28,10 @@ public partial class VaultEntry : ComponentBase
         await OnDelete.InvokeAsync(Identifier);
     }
 
-
-    private void ToggleMenu()
+    private string CategoryIcon => Category?.ToLower() switch
     {
-        showMenu = !showMenu;
-    }
-
-    private string CategoryIcon =>
-        Category?.ToLower() switch
-        {
-            "personnel" => "fa-solid fa-lock",
-            "partagé" => "fa-solid fa-users",
-            _ => "fa-solid fa-tag"
-        };
+        "personnel" => "fa-solid fa-lock",
+        "partagé" => "fa-solid fa-users",
+        _ => "fa-solid fa-tag"
+    };
 }

@@ -28,10 +28,6 @@
     font-weight: 400;
 }
 
-.vaultHeader .menuBtn {
-    color: #b7b7b7;
-}
-
 .vaultField {
     display: flex;
     align-items: center;
@@ -58,28 +54,58 @@
     color: #b7b7b7;
 }
 
-.vaultMenu {
-    position: absolute;
-    top: 45px;
-    right: 10px;
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 8px 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 50;
-}
+/* DROPDOWN */
+.vaultHeader .dropdown > button {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-.vaultMenu .deleteBtn {
-    background: none;
+    background: transparent;
     border: none;
-    color: #ff5e5e;
-    padding: 8px 16px;
-    width: 100%;
-    text-align: left;
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 14px;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.vaultMenu .deleteBtn:hover {
-    color: #c72e2e;
+.vaultHeader .dropdown > button i {
+    font-size: 18px;
+    color: var(--text-primary, #000);
+}
+
+.vaultHeader .dropdown > button:hover {
+    background-color: var(--bg-tertiary);
+}
+
+/* Menu bulle — animation fluide */
+.vaultHeader .dropdown-menu {
+    border: none;
+    border-radius: var(--radius-md, 10px);
+    padding: 6px;
+    min-width: 160px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.vaultHeader .dropdown-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+/* Boutons du menu */
+.vaultHeader .dropdown-item {
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Supprimer */
+.vaultHeader .dropdown-item.text-danger:hover {
+    background-color: rgba(220, 53, 69, 0.1);
 }
