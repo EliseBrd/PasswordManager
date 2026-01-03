@@ -14,9 +14,9 @@ namespace PasswordManager.Dto.Vault.Responses
         public List<UserSummaryResponse> SharedWith { get; set; } = new();
     }
 
-    public class VaultEntryDto
+    /*public class VaultEntryDto
     {
         public string Identifier { get; set; } = string.Empty;
         public string EncryptedData { get; set; } = string.Empty;
-    }
+    }*/
 }

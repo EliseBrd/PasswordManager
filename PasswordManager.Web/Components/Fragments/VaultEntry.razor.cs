@@ -1,34 +1,37 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using PasswordManager.Web.Services;
 
 namespace PasswordManager.Web.Components.Fragments;
 
 public partial class VaultEntry : ComponentBase
 {
+    [Parameter] public int Identifier { get; set; }
+    [Parameter] public EventCallback<int> OnDelete { get; set; }
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Username { get; set; } = "";
     [Parameter] public string Password { get; set; } = "";
     [Parameter] public string Category { get; set; } = "Default";
-    [Parameter] public EventCallback OnDelete { get; set; }
     [Parameter] public EventCallback OnShowPassword { get; set; }
+    
+    [Inject] public VaultEntryService VaultEntryService { get; set; } = default!;
+    
     [Inject] IJSRuntime JS { get; set; } = default!;
+    
     private async Task Copy(string text)
     {
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
-
-    private bool showMenu = false;
-
-    private void ToggleMenu()
+    
+    private async Task Delete()
     {
-        showMenu = !showMenu;
+        await OnDelete.InvokeAsync(Identifier);
     }
 
-    private string CategoryIcon =>
-        Category?.ToLower() switch
-        {
-            "personnel" => "fa-solid fa-lock",
-            "partagé" => "fa-solid fa-users",
-            _ => "fa-solid fa-tag"
-        };
+    private string CategoryIcon => Category?.ToLower() switch
+    {
+        "personnel" => "fa-solid fa-lock",
+        "partagé" => "fa-solid fa-users",
+        _ => "fa-solid fa-tag"
+    };
 }

@@ -55,7 +55,7 @@ builder.Services.AddCascadingAuthenticationState();
 
 // --- Application Services ---
 builder.Services.AddScoped<VaultService>();
-
+builder.Services.AddScoped<VaultEntryService>();
 
 var app = builder.Build();
 

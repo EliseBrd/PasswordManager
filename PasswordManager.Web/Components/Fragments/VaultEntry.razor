@@ -1,19 +1,24 @@
 ﻿<div class="vaultCard">
     <div class="vaultHeader">
         <h3 class="titleVault">@Title</h3>
-        <button class="menuBtn" @onclick="ToggleMenu">
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-        </button>
-    </div>
-
-    @if (showMenu)
-    {
-        <div class="vaultMenu">
-            <button class="deleteBtn" @onclick="OnDelete">
-                <i class="fa-solid fa-trash"></i> Supprimer
+        <div class="dropdown">
+            <button class="btn p-0"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
             </button>
+
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <button class="dropdown-item text-danger" @onclick="Delete">
+                        <i class="fa-solid fa-trash me-2"></i>
+                        Supprimer
+                    </button>
+                </li>
+            </ul>
         </div>
-    }
+    </div>
 
     <div class="vaultField">
         <i class="fa-solid fa-user"></i>
@@ -39,3 +44,4 @@
         <span class="category">@Category</span>
     </div>
 </div>
+

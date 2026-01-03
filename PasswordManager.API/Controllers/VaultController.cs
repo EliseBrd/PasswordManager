@@ -62,19 +62,23 @@ namespace PasswordManager.API.Controllers
             {
                 MasterSalt = vault.MasterSalt,
                 EncryptedKey = vault.EncryptKey,
-                Entries = vault.Entries.Select(e => {
+                Entries = vault.Entries.Select(e =>
+                {
                     var ivBytes = Convert.FromBase64String(e.IVData);
                     var cypherBytes = Convert.FromBase64String(e.CypherData);
                     var tagBytes = Convert.FromBase64String(e.TagData);
 
-                    var combinedBytes = new byte[ivBytes.Length + cypherBytes.Length + tagBytes.Length];
+                    var combinedBytes = new byte[
+                        ivBytes.Length + cypherBytes.Length + tagBytes.Length
+                    ];
+
                     Buffer.BlockCopy(ivBytes, 0, combinedBytes, 0, ivBytes.Length);
                     Buffer.BlockCopy(cypherBytes, 0, combinedBytes, ivBytes.Length, cypherBytes.Length);
                     Buffer.BlockCopy(tagBytes, 0, combinedBytes, ivBytes.Length + cypherBytes.Length, tagBytes.Length);
-                    
-                    return new VaultEntryDto
+
+                    return new VaultUnlockEntryDto
                     {
-                        Identifier = e.Identifier.ToString(),
+                        Identifier = e.Identifier,
                         EncryptedData = Convert.ToBase64String(combinedBytes)
                     };
                 }).ToList()
@@ -97,27 +101,7 @@ namespace PasswordManager.API.Controllers
             return CreatedAtAction(nameof(GetVaultById), new { id = new Guid(createdVault.Identifier) }, createdVault);
         }
 
-        [HttpPost("entry")]
-        public async Task<IActionResult> CreateVaultEntry([FromBody] CreateVaultEntryRequest request)
-        {
-            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
-            if (currentUser == null)
-            {
-                return Unauthorized("User not found or session is invalid.");
-            }
-
-            var createdEntry = await _vaultService.CreateVaultEntryAsync(request, currentUser.Identifier);
-
-            return CreatedAtAction(nameof(GetVaultById), new { id = new Guid(createdEntry.VaultIdentifier) }, createdEntry);
-        }
-
-        [HttpGet("entry/{id}/password")]
-        public async Task<IActionResult> GetVaultEntryPassword(int id)
-        {
-            var encryptedPassword = await _vaultService.GetVaultEntryPasswordAsync(id);
-            if (encryptedPassword == null) return NotFound();
-            return Ok(new { encryptedPassword });
-        }
+        
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVaultById(Guid id)
