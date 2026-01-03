@@ -37,21 +37,10 @@ else
     </div>
     
     
-    <div class="btnAddContainer" @onclick="() => showCreateForm = !showCreateForm">
+    <div class="btnAddContainer" @onclick="OpenCreateModal">
         <button class="btnAdd">Ajouter une entrée</button>
         <i class="fa-solid fa-plus"></i>
     </div>
-
-    @if (showCreateForm)
-    {
-        <div class="create-entry-form">
-            <h3>Nouvelle entrée</h3>
-            <input @bind="newEntry.Title" placeholder="Titre" />
-            <input @bind="newEntry.Username" placeholder="Nom d'utilisateur" />
-            <input @bind="newEntry.Password" placeholder="Mot de passe" />
-            <button @onclick="CreateEntry">Enregistrer</button>
-        </div>
-    }
 
     @if (showShareModal)
     {
@@ -75,6 +64,13 @@ else
             />
         }
     </div>
+    
+    <ModalCreateVaultEntry
+        IsOpen="showCreateModal"
+        Entry="newEntry"
+        OnConfirm="ConfirmCreateEntry"
+        OnCancel="CancelCreateEntry" />
+
     
     <ModalValidateDelete
         IsOpen="showDeleteModal"
