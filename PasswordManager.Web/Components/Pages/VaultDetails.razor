@@ -55,7 +55,7 @@ else
 
     @if (showShareModal)
     {
-        <AddUserModal VaultId="@VaultId" 
+        <AddUserModal VaultId="@VaultGuid" 
                       ExistingUsers="@vault.SharedWith" 
                       IsShared="@vault.IsShared"
                       OnSharingChanged="@OnSharingChanged"

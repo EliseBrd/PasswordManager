@@ -24,14 +24,14 @@ namespace PasswordManager.API.Repositories
             return await _context.Vaults
                 .Include(v => v.Entries)
                 .Include(v => v.SharedUsers)
-                .FirstOrDefaultAsync(v => v.Identifier == id.ToString());
+                .FirstOrDefaultAsync(v => v.Identifier == id);
         }
 
         public async Task<Vault?> GetByIdWithSharedUsersAsync(Guid id)
         {
             return await _context.Vaults
                 .Include(v => v.SharedUsers)
-                .FirstOrDefaultAsync(v => v.Identifier == id.ToString());
+                .FirstOrDefaultAsync(v => v.Identifier == id);
         }
 
         public async Task<IEnumerable<Vault>> GetByUserIdAsync(Guid userId)

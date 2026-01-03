@@ -52,7 +52,7 @@ namespace PasswordManager.API.Services
 
             var vault = new Vault
             {
-                Identifier = Guid.NewGuid().ToString(),
+                Identifier = Guid.NewGuid(),
                 Name = request.Name,
                 MasterSalt = request.MasterSalt,
                 Password = hashedPassword,
@@ -76,7 +76,7 @@ namespace PasswordManager.API.Services
 
         public async Task<bool> UpdateVaultAsync(Vault vault)
         {
-            var existing = await _repository.GetByIdAsync(new Guid(vault.Identifier));
+            var existing = await _repository.GetByIdAsync(vault.Identifier);
             if (existing == null) return false;
             existing.Name = vault.Name;
             existing.LastUpdatedAt = DateTime.UtcNow;

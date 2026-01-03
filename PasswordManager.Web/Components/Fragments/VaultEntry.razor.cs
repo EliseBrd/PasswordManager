@@ -6,8 +6,8 @@ namespace PasswordManager.Web.Components.Fragments;
 
 public partial class VaultEntry : ComponentBase
 {
-    [Parameter] public int Identifier { get; set; }
-    [Parameter] public EventCallback<int> OnDelete { get; set; }
+    [Parameter] public Guid Identifier { get; set; }
+    [Parameter] public EventCallback<Guid> OnDelete { get; set; }
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Username { get; set; } = "";
     [Parameter] public string Password { get; set; } = "";
