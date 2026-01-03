@@ -11,6 +11,7 @@ public partial class Home : ComponentBase
     [Inject] protected MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler { get; set; } = default!;
 
     private List<VaultSummaryResponse> vaults = new();
+    private bool IsLoading { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -29,6 +30,10 @@ public partial class Home : ComponentBase
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching vaults: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 }
