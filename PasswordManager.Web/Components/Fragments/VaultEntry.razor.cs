@@ -6,13 +6,13 @@ namespace PasswordManager.Web.Components.Fragments;
 
 public partial class VaultEntry : ComponentBase
 {
-    [Parameter] public int Identifier { get; set; }
+    [Parameter] public Guid Identifier { get; set; }
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Username { get; set; } = "";
     [Parameter] public string Password { get; set; } = "";
     [Parameter] public string Category { get; set; } = "Default";
     [Parameter] public EventCallback OnShowPassword { get; set; }
-    [Parameter] public EventCallback<int> OnAskDelete { get; set; }
+    [Parameter] public EventCallback<Guid> OnAskDelete { get; set; }
     
     [Inject] IJSRuntime JS { get; set; } = default!;
     

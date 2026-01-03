@@ -5,8 +5,8 @@ namespace PasswordManager.API
     public class VaultEntry
     {
         //Cler Data
-        public int Identifier { get; set; }
-        public string VaultIdentifier { get; set; } = string.Empty; //Foreign Key for the Vault 
+        public Guid Identifier { get; set; } = Guid.NewGuid();
+        public Guid VaultIdentifier { get; set; } = default; //Foreign Key for the Vault
 
         public Guid CreatorIdentifier { get; set; } = default; //Foreign Key for the Vault Creator
         public AppUser? Creator { get; set; }

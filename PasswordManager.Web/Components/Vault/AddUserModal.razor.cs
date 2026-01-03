@@ -8,7 +8,7 @@ namespace PasswordManager.Web.Components.Vault
     {
         [Inject] protected VaultService VaultService { get; set; } = default!;
 
-        [Parameter] public string VaultId { get; set; } = "";
+        [Parameter] public Guid VaultId { get; set; } = default!;
         [Parameter] public List<UserSummaryResponse> ExistingUsers { get; set; } = new();
         [Parameter] public bool IsShared { get; set; }
         [Parameter] public EventCallback OnClose { get; set; }

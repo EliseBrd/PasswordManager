@@ -15,7 +15,9 @@ namespace PasswordManager.Web.Components.Pages
         [Inject] protected ILogger<VaultDetails> Logger { get; set; } = default!;
 
         [Parameter]
-        public string VaultId { get; set; } = "";
+        public string VaultId { get; set; } = ""; // Changed to string to avoid casting error
+
+        protected Guid VaultGuid => Guid.TryParse(VaultId, out var g) ? g : Guid.Empty;
 
         protected VaultDetailsResponse? vault;
         protected VaultUnlockResponse? unlockedVaultData;
@@ -30,9 +32,9 @@ namespace PasswordManager.Web.Components.Pages
         protected DecryptedVaultEntry newEntry = new();
         
         private bool showDeleteModal;
-        private int entryToDelete;
+        private Guid entryToDelete;
         
-        private void AskDeleteEntry(int id)
+        private void AskDeleteEntry(Guid id)
         {
             entryToDelete = id;
             showDeleteModal = true;
@@ -53,7 +55,14 @@ namespace PasswordManager.Web.Components.Pages
         {
             try
             {
-                vault = await VaultService.GetVaultDetailsAsync(VaultId);
+                if (VaultGuid != Guid.Empty)
+                {
+                    vault = await VaultService.GetVaultDetailsAsync(VaultGuid);
+                }
+                else
+                {
+                    errorMessage = "ID de coffre invalide.";
+                }
             }
             catch (Exception ex)
             {
@@ -72,7 +81,7 @@ namespace PasswordManager.Web.Components.Pages
 
             try
             {
-                unlockedVaultData = await VaultService.UnlockVaultAsync(VaultId, masterPassword);
+                unlockedVaultData = await VaultService.UnlockVaultAsync(VaultGuid, masterPassword);
 
                 if (unlockedVaultData == null)
                 {
@@ -119,7 +128,7 @@ namespace PasswordManager.Web.Components.Pages
 
             var request = new CreateVaultEntryRequest
             {
-                VaultIdentifier = VaultId,
+                VaultIdentifier = VaultGuid,
                 EncryptedData = encryptedData,
                 EncryptedPassword = encryptedPassword
             };
@@ -148,7 +157,7 @@ namespace PasswordManager.Web.Components.Pages
             }
         }
 
-        private async Task DeleteEntry(int entryId)
+        private async Task DeleteEntry(Guid entryId)
         {
             await VaultEntryService.DeleteVaultEntryAsync(entryId);
 
@@ -177,7 +186,7 @@ namespace PasswordManager.Web.Components.Pages
 
         public class DecryptedVaultEntry
         {
-            public int Identifier { get; set; }
+            public Guid Identifier { get; set; }
             public string Title { get; set; } = "";
             public string Username { get; set; } = "";
             public string Password { get; set; } = "";

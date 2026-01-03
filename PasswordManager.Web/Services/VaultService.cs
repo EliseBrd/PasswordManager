@@ -59,7 +59,7 @@ namespace PasswordManager.Web.Services
             return await response.Content.ReadFromJsonAsync<IEnumerable<VaultSummaryResponse>>(_jsonOptions);
         }
 
-        public async Task<VaultDetailsResponse?> GetVaultDetailsAsync(string vaultId)
+        public async Task<VaultDetailsResponse?> GetVaultDetailsAsync(Guid vaultId)
         {
             var client = await CreateHttpClientAsync();
             var response = await client.GetAsync($"{_apiBaseUrl}/api/vault/{vaultId}");
@@ -67,7 +67,7 @@ namespace PasswordManager.Web.Services
             return await response.Content.ReadFromJsonAsync<VaultDetailsResponse>(_jsonOptions);
         }
 
-        public async Task<VaultUnlockResponse?> UnlockVaultAsync(string vaultId, string password)
+        public async Task<VaultUnlockResponse?> UnlockVaultAsync(Guid vaultId, string password)
         {
             var client = await CreateHttpClientAsync();
             var request = new AccessVaultRequest { Password = password };
@@ -95,7 +95,7 @@ namespace PasswordManager.Web.Services
             return await response.Content.ReadFromJsonAsync<IEnumerable<UserSummaryResponse>>(_jsonOptions) ?? new List<UserSummaryResponse>();
         }
 
-        public async Task<bool> UpdateVaultSharingAsync(string vaultId, bool isShared)
+        public async Task<bool> UpdateVaultSharingAsync(Guid vaultId, bool isShared)
         {
             var client = await CreateHttpClientAsync();
             var request = new UpdateVaultSharingRequest { IsShared = isShared };
@@ -110,7 +110,7 @@ namespace PasswordManager.Web.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> AddUserToVaultAsync(string vaultId, Guid userId)
+        public async Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userId)
         {
             var client = await CreateHttpClientAsync();
             var request = new AddUserToVaultRequest { UserId = userId };
@@ -118,7 +118,7 @@ namespace PasswordManager.Web.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> RemoveUserFromVaultAsync(string vaultId, Guid userId)
+        public async Task<bool> RemoveUserFromVaultAsync(Guid vaultId, Guid userId)
         {
             var client = await CreateHttpClientAsync();
             var response = await client.DeleteAsync($"{_apiBaseUrl}/api/vault/{vaultId}/users/{userId}");
