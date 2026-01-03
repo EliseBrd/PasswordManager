@@ -32,7 +32,8 @@ namespace PasswordManager.API.Services
                 .Include(e => e.Vault)
                 .ThenInclude(v => v.SharedUsers)
                 .Where(e => e.Identifier == entryId)
-                .AnyAsync(e => e.Vault.CreatorIdentifier == userId || 
+                .AnyAsync(e => e.CreatorIdentifier == userId || 
+                               e.Vault.CreatorIdentifier == userId ||
                                e.Vault.SharedUsers.Any(u => u.Identifier == userId));
         }
 
