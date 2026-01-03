@@ -47,7 +47,7 @@ public class VaultEntryService
 
     
         public async Task<Guid> CreateEntryAsync(CreateVaultEntryRequest request)
-        {
+        { 
             var client = await CreateHttpClientAsync();
             var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/VaultEntry", request, _jsonOptions);
             response.EnsureSuccessStatusCode();
