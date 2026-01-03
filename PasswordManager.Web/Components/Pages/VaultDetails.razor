@@ -70,10 +70,15 @@ else
                 Title="@entry.Title"
                 Username="@entry.Username"
                 Password="@entry.Password"
-                OnDelete="DeleteEntry"
+                OnAskDelete="AskDeleteEntry"
                 OnShowPassword="@(() => ShowPassword(entry))"
             />
-
         }
     </div>
+    
+    <ModalValidateDelete
+        IsOpen="showDeleteModal"
+        Message="Cette entrée sera définitivement supprimée. Continuer ?"
+        OnConfirm="ConfirmDeleteEntry"
+        OnCancel="CancelDelete" />
 }

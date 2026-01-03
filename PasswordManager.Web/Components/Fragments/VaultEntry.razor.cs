@@ -7,14 +7,12 @@ namespace PasswordManager.Web.Components.Fragments;
 public partial class VaultEntry : ComponentBase
 {
     [Parameter] public int Identifier { get; set; }
-    [Parameter] public EventCallback<int> OnDelete { get; set; }
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Username { get; set; } = "";
     [Parameter] public string Password { get; set; } = "";
     [Parameter] public string Category { get; set; } = "Default";
     [Parameter] public EventCallback OnShowPassword { get; set; }
-    
-    [Inject] public VaultEntryService VaultEntryService { get; set; } = default!;
+    [Parameter] public EventCallback<int> OnAskDelete { get; set; }
     
     [Inject] IJSRuntime JS { get; set; } = default!;
     
@@ -23,9 +21,9 @@ public partial class VaultEntry : ComponentBase
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
     }
     
-    private async Task Delete()
+    private async Task AskDelete()
     {
-        await OnDelete.InvokeAsync(Identifier);
+        await OnAskDelete.InvokeAsync(Identifier);
     }
 
     private string CategoryIcon => Category?.ToLower() switch

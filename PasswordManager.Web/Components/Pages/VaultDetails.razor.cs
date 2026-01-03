@@ -28,7 +28,27 @@ namespace PasswordManager.Web.Components.Pages
         protected bool showCreateForm = false;
         protected bool showShareModal = false;
         protected DecryptedVaultEntry newEntry = new();
-
+        
+        private bool showDeleteModal;
+        private int entryToDelete;
+        
+        private void AskDeleteEntry(int id)
+        {
+            entryToDelete = id;
+            showDeleteModal = true;
+        }
+        
+        private async Task ConfirmDeleteEntry()
+        {
+            await DeleteEntry(entryToDelete);
+            showDeleteModal = false;
+        }
+        
+        private void CancelDelete()
+        {
+            showDeleteModal = false;
+        }
+        
         protected override async Task OnInitializedAsync()
         {
             try
