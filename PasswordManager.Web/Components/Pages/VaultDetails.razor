@@ -2,6 +2,7 @@
 @using PasswordManager.Web.Components.Fragments
 @using PasswordManager.Web.Components.Vault
 @using PasswordManager.Web.Components.Modals
+@using PasswordManager.Web.Components.Shared
 
 @inject NavigationManager Navigation
 
@@ -9,7 +10,7 @@
 
 @if (vault == null)
 {
-    <p>Chargement...</p>
+    <Loader />
 }
 else if (!isUnlocked)
 {

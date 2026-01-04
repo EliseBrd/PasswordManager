@@ -1,8 +1,22 @@
 ﻿@page "/"
-@using Microsoft.AspNetCore.Components.Authorization
 @using PasswordManager.Web.Components.Fragments
+@using PasswordManager.Web.Components.Shared
 
-@inject NavigationManager Navigation
+<PageTitle>Vaults</PageTitle>
 
-<VaultList Vaults="vaults" />
+<h1 class="titleHome">Mes Vaults</h1>
 
+<input type="text" class="searchInput" placeholder="Rechercher..." />
+
+@if (IsLoading)
+{
+    <Loader />
+}
+else if (vaults == null || vaults.Count == 0)
+{
+    <p>Vous n’avez pas encore de coffre créé.</p>
+}
+else
+{
+    <VaultList Vaults="vaults" />
+}
