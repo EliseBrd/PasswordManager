@@ -1,4 +1,5 @@
-﻿using PasswordManager.API;
+﻿using Microsoft.Extensions.Logging;
+using PasswordManager.API;
 using PasswordManager.API.Context;
 using PasswordManager.API.Objects;
 using PasswordManager.API.Services.Interfaces;
@@ -8,14 +9,18 @@ namespace PasswordManager.API.Services;
 public class VaultEntryService : IVaultEntryService
 {
     private readonly PasswordManagerDBContext _context;
+    private readonly ILogger<VaultEntryService> _logger;
 
-    public VaultEntryService(PasswordManagerDBContext context)
+    public VaultEntryService(PasswordManagerDBContext context, ILogger<VaultEntryService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<VaultEntry> CreateEntryAsync(CreateVaultEntryRequest request, Guid creatorId)
     {
+        _logger.LogInformation("Creating new vault entry for Vault {VaultId} by User {UserId}", request.VaultIdentifier, creatorId);
+
         // Split EncryptedData
         var dataBytes = Convert.FromBase64String(request.EncryptedData);
         var dataIv = new byte[12];
@@ -52,13 +57,18 @@ public class VaultEntryService : IVaultEntryService
         _context.VaultEntries.Add(entry);
         await _context.SaveChangesAsync();
 
+        _logger.LogInformation("Vault entry {EntryId} created successfully in Vault {VaultId}", entry.Identifier, request.VaultIdentifier);
         return entry;
     }
     
     public async Task<string?> GetEntryPasswordAsync(Guid entryId)
     {
         var entry = await _context.VaultEntries.FindAsync(entryId);
-        if (entry == null) return null;
+        if (entry == null)
+        {
+            _logger.LogWarning("GetEntryPassword failed: Entry {EntryId} not found", entryId);
+            return null;
+        }
 
         var ivBytes = Convert.FromBase64String(entry.IVPassword);
         var cypherBytes = Convert.FromBase64String(entry.CypherPassword);
@@ -69,20 +79,28 @@ public class VaultEntryService : IVaultEntryService
         Buffer.BlockCopy(cypherBytes, 0, combinedBytes, ivBytes.Length, cypherBytes.Length);
         Buffer.BlockCopy(tagBytes, 0, combinedBytes, ivBytes.Length + cypherBytes.Length, tagBytes.Length);
 
+        _logger.LogInformation("Password retrieved for entry {EntryId}", entryId);
         return Convert.ToBase64String(combinedBytes);
     }
 
     public async Task<bool> DeleteEntryAsync(Guid id)
     {
         var entry = await _context.VaultEntries.FindAsync(id);
-        if (entry == null) return false;
+        if (entry == null)
+        {
+            _logger.LogWarning("DeleteEntry failed: Entry {EntryId} not found", id);
+            return false;
+        }
         _context.VaultEntries.Remove(entry);
         await _context.SaveChangesAsync();
+        
+        _logger.LogInformation("Vault entry {EntryId} deleted", id);
         return true;
     }
 
     public async Task<bool> UpdateEntryAsync(VaultEntry entry)
     {
+        _logger.LogInformation("UpdateEntry called for {EntryId} (Not implemented)", entry.Identifier);
         return true;
     }
 }
