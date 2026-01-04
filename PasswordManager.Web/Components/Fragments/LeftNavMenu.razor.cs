@@ -57,7 +57,7 @@ public partial class LeftNavMenu : ComponentBase
         // Si on n'est pas sur la page d'accueil, on redirige
         if (NavManager.Uri != NavManager.BaseUri)
         {
-            NavManager.NavigateTo("/");
+            NavManager.NavigateTo("/"); 
         }
     }
     
