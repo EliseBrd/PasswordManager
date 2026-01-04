@@ -16,10 +16,12 @@ namespace PasswordManager.API.Controllers
     public class VaultController : ControllerBase
     {
         private readonly IVaultService _vaultService;
+        private readonly IPermissionService _permissionService;
 
-        public VaultController(IVaultService vaultService)
+        public VaultController(IVaultService vaultService, IPermissionService permissionService)
         {
             _vaultService = vaultService;
+            _permissionService = permissionService;
         }
 
         [HttpGet]
@@ -38,6 +40,14 @@ namespace PasswordManager.API.Controllers
         [HttpPost("{id}/access")]
         public async Task<IActionResult> AccessVault(Guid id, [FromBody] AccessVaultRequest request)
         {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null) return Unauthorized("User not found or session is invalid.");
+
+            if (!await _permissionService.CanAccessVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You do not have access to this vault.");
+            }
+
             var vault = await _vaultService.AccessVaultAsync(id, request.Password);
 
             if (vault == null)
@@ -51,6 +61,14 @@ namespace PasswordManager.API.Controllers
         [HttpPost("{id}/unlock")]
         public async Task<IActionResult> UnlockVault(Guid id, [FromBody] AccessVaultRequest request)
         {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null) return Unauthorized("User not found or session is invalid.");
+
+            if (!await _permissionService.CanAccessVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You do not have access to this vault.");
+            }
+            
             var vault = await _vaultService.AccessVaultAsync(id, request.Password);
 
             if (vault == null)
@@ -106,6 +124,11 @@ namespace PasswordManager.API.Controllers
                 return Unauthorized("User not found or session is invalid.");
             }
 
+            if (!await _permissionService.CanAccessVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You do not have access to this vault.");
+            }
+
             var vault = await _vaultService.GetVaultByIdAsync(id);
             if (vault == null)
             {
@@ -138,10 +161,15 @@ namespace PasswordManager.API.Controllers
                 return Unauthorized("User not found or session is invalid.");
             }
 
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You are not authorized to update this vault.");
+            }
+
             var success = await _vaultService.UpdateVaultSharingAsync(id, request.IsShared, currentUser.Identifier);
             if (!success)
             {
-                return Forbid("You are not authorized to update this vault or the vault does not exist.");
+                return NotFound();
             }
 
             return NoContent();
@@ -156,10 +184,15 @@ namespace PasswordManager.API.Controllers
                 return Unauthorized("User not found or session is invalid.");
             }
 
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You are not authorized to share this vault.");
+            }
+
             var success = await _vaultService.ShareVaultAsync(id, currentUser.Identifier);
             if (!success)
             {
-                return Forbid("You are not authorized to share this vault or the vault does not exist.");
+                return NotFound();
             }
 
             return NoContent();
@@ -174,10 +207,15 @@ namespace PasswordManager.API.Controllers
                 return Unauthorized("User not found or session is invalid.");
             }
 
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You are not authorized to add users to this vault.");
+            }
+
             var success = await _vaultService.AddUserToVaultAsync(id, request.UserId, currentUser.Identifier);
             if (!success)
             {
-                return Forbid("You are not authorized to add users to this vault, the vault is not shared, or the user to add does not exist.");
+                return BadRequest("Could not add user to vault. Check if user exists and vault is shared.");
             }
 
             return NoContent();
@@ -192,10 +230,15 @@ namespace PasswordManager.API.Controllers
                 return Unauthorized("User not found or session is invalid.");
             }
 
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You are not authorized to remove users from this vault.");
+            }
+
             var success = await _vaultService.RemoveUserFromVaultAsync(id, userId, currentUser.Identifier);
             if (!success)
             {
-                return Forbid("You are not authorized to remove users from this vault, or the user does not exist.");
+                return NotFound();
             }
 
             return NoContent();
