@@ -2,7 +2,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--bg-secondary, #f9fafb);
 }
 
 .vaultCreateCard {
@@ -100,16 +99,6 @@
 .btn-primary:hover, .btn-primary:focus {
     background-color: var(--primary-hover, #4338CA);
 }
-
-
-
-
-
-
-
-
-
-
 
 .passwordStrength {
     margin-top: 10px;

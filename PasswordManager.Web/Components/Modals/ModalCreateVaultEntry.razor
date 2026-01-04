@@ -1,0 +1,61 @@
+﻿@if (IsOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content p-0 border-0 bg-transparent">
+
+                <div class="vaultEntryCreateContainer">
+                    <div class="vaultEntryCreateCard">
+
+                        <div class="vaultEntryCreateHeader">
+                            <i class="fa-solid fa-key"></i>
+                            <h2>Nouvelle entrée</h2>
+                            <p>Renseignez les informations ci-dessous</p>
+                        </div>
+
+                        <div class="vaultEntryCreateForm">
+
+                            <div class="sectionForm">
+                                <label for="vaultEntryTitle">Titre</label>
+                                <input id="vaultEntryTitle" 
+                                       type="text" 
+                                       placeholder="Ex : Instagram" 
+                                       @bind="Entry.Title" />
+                            </div>
+
+                            <div class="sectionForm">
+                                <label for="vaultEntryUsername">Nom d'utilisateur/ E-mail</label>
+                                <input id="vaultEntryUsername" 
+                                       type="text"
+                                       placeholder="Ex : test@gmail.com"
+                                       @bind="Entry.Username" />
+                            </div>
+
+                            <div class="sectionForm">
+                                <label for="vaultEntryPassword">Mot de passe</label>
+                                <input id="vaultEntryPassword" 
+                                       type="password"
+                                       placeholder="Ex : BenjiLaFrappeDu53" 
+                                       @bind="Entry.Password" />
+                            </div>
+
+                            <button class="btn-primary" @onclick="OnConfirm">
+                                <i class="fa-solid fa-check"></i>
+                                Enregistrer
+                            </button>
+
+                            <button class="btn-secondary" @onclick="OnCancel">
+                                Annuler
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
+}

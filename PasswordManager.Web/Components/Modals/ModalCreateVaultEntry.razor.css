@@ -1,10 +1,10 @@
-﻿.unlockVaultContainer {
+﻿.vaultEntryCreateContainer {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.unlockVaultCard {
+.vaultEntryCreateCard {
     background: var(--bg-primary, #ffffff);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -16,13 +16,12 @@
     transition: all 0.3s;
 }
 
-.unlockVaultCard:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--primary-color);
+.vaultEntryCreateCard:hover {
+    transform: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
-.unlockVaultHeader {
+.vaultEntryCreateHeader {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -30,27 +29,26 @@
     margin-bottom: 16px;
 }
 
-.unlockVaultHeader i {
+.vaultEntryCreateHeader i {
     font-size: 2rem;
     color: var(--primary-color, #4F46E5);
 }
 
-.unlockVaultHeader h2 {
+.vaultEntryCreateHeader h2 {
     margin: 1rem 0 0.25rem;
     font-size: 1.5rem;
     color: var(--text-primary, #111827);
 }
 
-.unlockVaultHeader p {
+.vaultEntryCreateHeader p {
     color: var(--text-secondary, #6b7280);
     font-size: 0.95rem;
     margin-bottom: 0;
 }
 
-.unlockVaultForm .sectionForm {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+.vaultEntryCreateForm .sectionForm {
+    text-align: left;
+    margin-bottom: 1rem;
 }
 
 .sectionForm .label {
@@ -73,7 +71,8 @@
     border-color: var(--primary-color, #4F46E5);
 }
 
-.unlockVaultBtn {
+.btn-primary,
+.btn-secondary {
     width: 100%;
     border: none;
     border-radius: 8px;
@@ -83,19 +82,35 @@
     margin-top: 0.75rem;
     transition: 0.2s;
     box-shadow: none;
-    background-color: var(--primary-color, #4F46E5);
-    color: white;
 }
 
-.unlockVaultBtn:hover, .unlockVaultBtn:focus {
-    background-color: var(--primary-hover, #4338CA);
+.btn-primary:focus,
+.btn-secondary:focus {
     box-shadow: none;
     border-color: inherit;
 }
 
-.errorMessage {
-    color: var(--warning-color, #dc2626);
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-    text-align: left;
+.btn-primary {
+    background-color: var(--primary-color, #4F46E5);
+    color: white;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--primary-hover, #4338CA);
+}
+
+.passwordStrength {
+    margin-top: 10px;
+}
+
+.strengthBar {
+    height: 8px;
+    border-radius: 6px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.strengthLabel {
+    display: block;
+    margin-top: 6px;
+    font-weight: 500;
 }
