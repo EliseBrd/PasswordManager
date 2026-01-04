@@ -24,6 +24,7 @@ builder.Services.AddDbContext<PasswordManagerDBContext>(options =>
 builder.Services.AddScoped<IVaultRepository, VaultRepository>();
 builder.Services.AddScoped<IVaultService, VaultService>();
 builder.Services.AddScoped<IVaultEntryService, VaultEntryService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
 

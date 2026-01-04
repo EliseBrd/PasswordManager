@@ -1,8 +1,10 @@
-﻿namespace PasswordManager.Dto.Vault.Responses
+﻿using System;
+
+namespace PasswordManager.Dto.Vault.Responses
 {
     public class VaultUnlockEntryDto
     {
-        public int Identifier { get; set; }
+        public Guid Identifier { get; set; }
         public string EncryptedData { get; set; } = string.Empty;
     }
 }

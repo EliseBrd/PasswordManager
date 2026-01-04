@@ -3,7 +3,7 @@
     public class Vault
     {
         //clearData
-        public string Identifier { get; set; } = string.Empty;
+        public Guid Identifier { get; set; } = Guid.NewGuid();
 
         public string Name { get; set; } = string.Empty;
         public Guid CreatorIdentifier { get; set; } = default; //Foreign Key for the Vault Creator

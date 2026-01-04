@@ -22,7 +22,7 @@ namespace PasswordManager.API.Migrations
                     b.Property<Guid>("SharedUsersIdentifier")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SharedVaultsIdentifier")
+                    b.Property<Guid>("SharedVaultsIdentifier")
                         .HasColumnType("TEXT");
 
                     b.HasKey("SharedUsersIdentifier", "SharedVaultsIdentifier");
@@ -60,7 +60,8 @@ namespace PasswordManager.API.Migrations
 
             modelBuilder.Entity("PasswordManager.API.Objects.Vault", b =>
                 {
-                    b.Property<string>("Identifier")
+                    b.Property<Guid>("Identifier")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -110,9 +111,9 @@ namespace PasswordManager.API.Migrations
 
             modelBuilder.Entity("PasswordManager.API.VaultEntry", b =>
                 {
-                    b.Property<int>("Identifier")
+                    b.Property<Guid>("Identifier")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -153,8 +154,7 @@ namespace PasswordManager.API.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("VaultIdentifier")
-                        .IsRequired()
+                    b.Property<Guid>("VaultIdentifier")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Identifier");

@@ -8,8 +8,8 @@ namespace PasswordManager.API.Services.Interfaces
     public interface IVaultEntryService
     {
         Task<bool> UpdateEntryAsync(VaultEntry entry);
-        Task<bool> DeleteEntryAsync(int id);
+        Task<bool> DeleteEntryAsync(Guid id);
         Task<VaultEntry> CreateEntryAsync(CreateVaultEntryRequest request, Guid creatorId);
-        Task<string?> GetEntryPasswordAsync(int entryId);
+        Task<string?> GetEntryPasswordAsync(Guid entryId);
     }
 }

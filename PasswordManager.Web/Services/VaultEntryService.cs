@@ -32,12 +32,12 @@ public class VaultEntryService
             };
         }
         
-        public async Task<string?> GetEntryPasswordAsync(int identifier)
+        public async Task<string?> GetEntryPasswordAsync(Guid identifier)
         {
             var client = await CreateHttpClientAsync();
 
             var response = await client.GetFromJsonAsync<JsonElement>(
-                $"{_apiBaseUrl}/api/vault/entry/{identifier}/password",
+                $"{_apiBaseUrl}/api/VaultEntry/{identifier}/password",
                 _jsonOptions);
 
             return response.TryGetProperty("encryptedPassword", out var prop)
@@ -45,6 +45,22 @@ public class VaultEntryService
                 : null;
         }
 
+    
+        public  async Task CreateEntryAsync(CreateVaultEntryRequest request)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/VaultEntry", request, _jsonOptions);
+            response.EnsureSuccessStatusCode();
+        }
+        
+        public async Task DeleteVaultEntryAsync(Guid identifier)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.DeleteAsync(
+                $"{_apiBaseUrl}/api/VaultEntry/{identifier}");
+            response.EnsureSuccessStatusCode();
+        }
+        
         private async Task<HttpClient> CreateHttpClientAsync()
         {
             var client = _httpClientFactory.CreateClient("API");
@@ -56,20 +72,5 @@ public class VaultEntryService
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             return client;
-        }
-        
-        public  async Task CreateEntryAsync(CreateVaultEntryRequest request)
-        {
-            var client = await CreateHttpClientAsync();
-            var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/VaultEntry", request, _jsonOptions);
-            response.EnsureSuccessStatusCode();
-        }
-        
-        public async Task DeleteVaultEntryAsync(int identifier)
-        {
-            var client = await CreateHttpClientAsync();
-            var response = await client.DeleteAsync(
-                $"{_apiBaseUrl}/api/VaultEntry/{identifier}");
-            response.EnsureSuccessStatusCode();
         }
 }

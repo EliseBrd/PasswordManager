@@ -16,7 +16,8 @@ namespace PasswordManager.API.Migrations
                 columns: table => new
                 {
                     Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
-                    entraId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    entraId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Email = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -27,15 +28,15 @@ namespace PasswordManager.API.Migrations
                 name: "Vaults",
                 columns: table => new
                 {
-                    Identifier = table.Column<string>(type: "TEXT", nullable: false),
+                    Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     CreatorIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastUpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    isShared = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsShared = table.Column<bool>(type: "INTEGER", nullable: false),
                     MasterSalt = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
                     Salt = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    encryptKey = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false),
+                    EncryptKey = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false),
                     Password = table.Column<string>(type: "TEXT", maxLength: 512, nullable: false)
                 },
                 constraints: table =>
@@ -54,7 +55,7 @@ namespace PasswordManager.API.Migrations
                 columns: table => new
                 {
                     SharedUsersIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SharedVaultsIdentifier = table.Column<string>(type: "TEXT", nullable: false)
+                    SharedVaultsIdentifier = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -77,9 +78,8 @@ namespace PasswordManager.API.Migrations
                 name: "VaultEntries",
                 columns: table => new
                 {
-                    Identifier = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VaultIdentifier = table.Column<string>(type: "TEXT", nullable: false),
+                    Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    VaultIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatorIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     LastUpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
@@ -109,8 +109,8 @@ namespace PasswordManager.API.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Identifier", "entraId" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new Guid("00000000-0000-0000-0000-000000000001") });
+                columns: new[] { "Identifier", "Email", "entraId" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "", new Guid("00000000-0000-0000-0000-000000000001") });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AppUserVault_SharedVaultsIdentifier",

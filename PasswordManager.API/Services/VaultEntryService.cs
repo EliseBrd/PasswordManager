@@ -36,6 +36,7 @@ public class VaultEntryService : IVaultEntryService
 
         var entry = new VaultEntry
         {
+            Identifier = Guid.NewGuid(),
             VaultIdentifier = request.VaultIdentifier,
             CreatorIdentifier = creatorId,
             CreatedAt = DateTime.UtcNow,
@@ -54,7 +55,7 @@ public class VaultEntryService : IVaultEntryService
         return entry;
     }
     
-    public async Task<string?> GetEntryPasswordAsync(int entryId)
+    public async Task<string?> GetEntryPasswordAsync(Guid entryId)
     {
         var entry = await _context.VaultEntries.FindAsync(entryId);
         if (entry == null) return null;
@@ -71,7 +72,7 @@ public class VaultEntryService : IVaultEntryService
         return Convert.ToBase64String(combinedBytes);
     }
 
-    public async Task<bool> DeleteEntryAsync(int id)
+    public async Task<bool> DeleteEntryAsync(Guid id)
     {
         var entry = await _context.VaultEntries.FindAsync(id);
         if (entry == null) return false;
@@ -80,22 +81,8 @@ public class VaultEntryService : IVaultEntryService
         return true;
     }
 
-    //fonction de modification vide pour avoir une réponse a la définition de l'interface IVaultEntryService
     public async Task<bool> UpdateEntryAsync(VaultEntry entry)
     {
         return true;
-    }
-    
-
-    private byte[] CombineBytes(string iv, string cipher, string tag)
-    {
-        var ivBytes = Convert.FromBase64String(iv);
-        var cipherBytes = Convert.FromBase64String(cipher);
-        var tagBytes = Convert.FromBase64String(tag);
-        var combined = new byte[ivBytes.Length + cipherBytes.Length + tagBytes.Length];
-        Buffer.BlockCopy(ivBytes, 0, combined, 0, ivBytes.Length);
-        Buffer.BlockCopy(cipherBytes, 0, combined, ivBytes.Length, cipherBytes.Length);
-        Buffer.BlockCopy(tagBytes, 0, combined, ivBytes.Length + cipherBytes.Length, tagBytes.Length);
-        return combined;
     }
 }

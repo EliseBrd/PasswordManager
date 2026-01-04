@@ -62,20 +62,16 @@ namespace PasswordManager.API.Controllers
             {
                 MasterSalt = vault.MasterSalt,
                 EncryptedKey = vault.EncryptKey,
-                Entries = vault.Entries.Select(e =>
-                {
+                Entries = vault.Entries.Select(e => {
                     var ivBytes = Convert.FromBase64String(e.IVData);
                     var cypherBytes = Convert.FromBase64String(e.CypherData);
                     var tagBytes = Convert.FromBase64String(e.TagData);
 
-                    var combinedBytes = new byte[
-                        ivBytes.Length + cypherBytes.Length + tagBytes.Length
-                    ];
-
+                    var combinedBytes = new byte[ivBytes.Length + cypherBytes.Length + tagBytes.Length];
                     Buffer.BlockCopy(ivBytes, 0, combinedBytes, 0, ivBytes.Length);
                     Buffer.BlockCopy(cypherBytes, 0, combinedBytes, ivBytes.Length, cypherBytes.Length);
                     Buffer.BlockCopy(tagBytes, 0, combinedBytes, ivBytes.Length + cypherBytes.Length, tagBytes.Length);
-
+                    
                     return new VaultUnlockEntryDto
                     {
                         Identifier = e.Identifier,
@@ -98,10 +94,8 @@ namespace PasswordManager.API.Controllers
 
             var createdVault = await _vaultService.CreateVaultAsync(request, currentUser.Identifier);
 
-            return CreatedAtAction(nameof(GetVaultById), new { id = new Guid(createdVault.Identifier) }, createdVault);
+            return CreatedAtAction(nameof(GetVaultById), new { id = createdVault.Identifier }, createdVault);
         }
-
-        
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVaultById(Guid id)
