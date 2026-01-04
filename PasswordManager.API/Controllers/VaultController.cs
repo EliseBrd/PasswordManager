@@ -25,7 +25,7 @@ namespace PasswordManager.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAccessibleVaults()
+        public async Task<IActionResult> GetAccessibleVaults([FromQuery] bool? isShared = null)
         {
             var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
             if (currentUser == null)
@@ -34,6 +34,12 @@ namespace PasswordManager.API.Controllers
             }
 
             var vaults = await _vaultService.GetAccessibleVaultsAsync(currentUser.Identifier);
+            
+            if (isShared.HasValue)
+            {
+                vaults = vaults.Where(v => v.IsShared == isShared.Value);
+            }
+
             return Ok(vaults);
         }
 

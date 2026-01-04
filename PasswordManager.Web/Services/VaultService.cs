@@ -51,10 +51,17 @@ namespace PasswordManager.Web.Services
             return client;
         }
 
-        public async Task<IEnumerable<VaultSummaryResponse>?> GetAccessibleVaultsAsync()
+        public async Task<IEnumerable<VaultSummaryResponse>?> GetAccessibleVaultsAsync(bool? isShared = null)
         {
             var client = await CreateHttpClientAsync();
-            var response = await client.GetAsync($"{_apiBaseUrl}/api/vault");
+            var url = $"{_apiBaseUrl}/api/vault";
+            
+            if (isShared.HasValue)
+            {
+                url += $"?isShared={isShared.Value.ToString().ToLower()}";
+            }
+            
+            var response = await client.GetAsync(url);  
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<IEnumerable<VaultSummaryResponse>>(_jsonOptions);
         }
