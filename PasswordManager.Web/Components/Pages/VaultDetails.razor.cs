@@ -27,10 +27,10 @@ namespace PasswordManager.Web.Components.Pages
         
         protected List<DecryptedVaultEntry> decryptedEntries = new();
         
-        protected bool showCreateForm = false;
         protected bool showShareModal = false;
         protected DecryptedVaultEntry newEntry = new();
         
+        private bool showCreateModal;
         private bool showDeleteModal;
         private Guid entryToDelete;
         
@@ -115,6 +115,24 @@ namespace PasswordManager.Web.Components.Pages
                 Logger.LogError(ex, "Error unlocking vault");
             }
         }
+        
+        private void OpenCreateModal()
+        {
+            newEntry = new();
+            showCreateModal = true;
+        }
+
+        private void CancelCreateEntry()
+        {
+            showCreateModal = false;
+        }
+
+        private async Task ConfirmCreateEntry()
+        {
+            await CreateEntry();
+            showCreateModal = false;
+        }
+
 
         protected async Task CreateEntry()
         {
@@ -138,7 +156,6 @@ namespace PasswordManager.Web.Components.Pages
             newEntry.Identifier = createdId;
             decryptedEntries.Add(newEntry);
             newEntry = new();
-            showCreateForm = false;
         }
 
         protected async Task ShowPassword(DecryptedVaultEntry entry)

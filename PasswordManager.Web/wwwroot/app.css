@@ -24,6 +24,7 @@
     --bg-primary: hsl(0, 0%, 100%);
     --bg-secondary: hsl(210, 20%, 98%);
     --bg-tertiary: hsl(210, 20%, 95%);
+    --bg-page: hsl(210, 6%, 93%);
     --border-color: hsl(210, 15%, 85%);
     --text-primary: hsl(220, 15%, 15%);
     --text-secondary: hsl(220, 10%, 40%);
