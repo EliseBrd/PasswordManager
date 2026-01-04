@@ -133,8 +133,9 @@ namespace PasswordManager.Web.Components.Pages
                 EncryptedPassword = encryptedPassword
             };
 
-            await VaultEntryService.CreateEntryAsync(request);
+            var createdId = await VaultEntryService.CreateEntryAsync(request);
 
+            newEntry.Identifier = createdId;
             decryptedEntries.Add(newEntry);
             newEntry = new();
             showCreateForm = false;

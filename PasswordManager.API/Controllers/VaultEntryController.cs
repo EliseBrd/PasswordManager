@@ -27,7 +27,7 @@ namespace PasswordManager.API.Controllers
             // Vérifie si l'utilisateur a le droit d'ajouter une entrée dans ce coffre
             if (!await _permissionService.CanAccessVaultAsync(currentUser.Identifier, request.VaultIdentifier))
             {
-                return Forbid("You do not have access to this vault.");
+                return StatusCode(403, "You do not have access to this vault.");
             }
 
             var createdEntry = await _vaultEntryService.CreateEntryAsync(request, currentUser.Identifier);
@@ -46,7 +46,7 @@ namespace PasswordManager.API.Controllers
             // Vérifie si l'utilisateur a le droit de modifier cette entrée
             if (!await _permissionService.CanManageVaultEntryAsync(currentUser.Identifier, id))
             {
-                return Forbid("You are not authorized to modify this entry.");
+                return StatusCode(403, "You are not authorized to modify this entry.");
             }
 
             var success = await _vaultEntryService.UpdateEntryAsync(entry);
@@ -66,7 +66,7 @@ namespace PasswordManager.API.Controllers
             // Vérifie si l'utilisateur a le droit de supprimer cette entrée
             if (!await _permissionService.CanManageVaultEntryAsync(currentUser.Identifier, id))
             {
-                return Forbid("You are not authorized to delete this entry.");
+                return StatusCode(403, "You are not authorized to delete this entry.");
             }
 
             try
@@ -98,7 +98,7 @@ namespace PasswordManager.API.Controllers
             // Vérifie si l'utilisateur a le droit de voir cette entrée
             if (!await _permissionService.CanAccessVaultEntryAsync(currentUser.Identifier, id))
             {
-                return Forbid("You do not have access to this entry.");
+                return StatusCode(403, "You do not have access to this entry.");
             }
 
             var encryptedPassword = await _vaultEntryService.GetEntryPasswordAsync(id);
