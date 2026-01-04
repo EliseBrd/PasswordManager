@@ -3,6 +3,7 @@ using PasswordManager.API.Context;
 using PasswordManager.API.Objects;
 using PasswordManager.API.Services.Interfaces;
 using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.API.Services;
 public class VaultEntryService : IVaultEntryService

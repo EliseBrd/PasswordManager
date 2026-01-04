@@ -61,16 +61,19 @@ else
                 Username="@entry.Username"
                 Password="@entry.Password"
                 OnAskDelete="AskDeleteEntry"
+                OnAskEdit="AskEditEntry"
                 OnShowPassword="@(() => ShowPassword(entry))"
             />
+
         }
     </div>
     
     <ModalCreateVaultEntry
         IsOpen="showCreateModal"
         Entry="newEntry"
-        OnConfirm="ConfirmCreateEntry"
-        OnCancel="CancelCreateEntry" />
+        Mode="modalMode"
+        OnConfirm="ConfirmSaveEntry"
+        OnCancel="CancelSaveEntry" />
 
     
     <ModalValidateDelete
@@ -78,4 +81,5 @@ else
         Message="Cette entrée sera définitivement supprimée. Continuer ?"
         OnConfirm="ConfirmDeleteEntry"
         OnCancel="CancelDelete" />
+
 }

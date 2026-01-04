@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using PasswordManager.Dto.Vault.Requests;
 using PasswordManager.Dto.Vault.Responses;
 using PasswordManager.Web.Services;
 using System.Text.Json;
+using PasswordManager.Dto.VaultsEntries.Requests;
+using PasswordManager.Web.Components.Modals;
 
 namespace PasswordManager.Web.Components.Pages
 {
@@ -34,11 +35,33 @@ namespace PasswordManager.Web.Components.Pages
         private bool showDeleteModal;
         private Guid entryToDelete;
         
+        private ModalCreateVaultEntry.VaultEntryModalMode modalMode;
+        private DecryptedVaultEntry? entryBeingEdited;
+        
         private void AskDeleteEntry(Guid id)
         {
             entryToDelete = id;
             showDeleteModal = true;
         }
+        
+        private void AskEditEntry(Guid id)
+        {
+            var entry = decryptedEntries.First(e => e.Identifier == id);
+
+            // Copie pour éviter modification directe avant validation
+            newEntry = new DecryptedVaultEntry
+            {
+                Identifier = entry.Identifier,
+                Title = entry.Title,
+                Username = entry.Username,
+                Password = entry.Password
+            };
+
+            entryBeingEdited = entry;
+            modalMode = ModalCreateVaultEntry.VaultEntryModalMode.Edit;
+            showCreateModal = true;
+        }
+
         
         private async Task ConfirmDeleteEntry()
         {
@@ -119,22 +142,106 @@ namespace PasswordManager.Web.Components.Pages
         private void OpenCreateModal()
         {
             newEntry = new();
+            entryBeingEdited = null;
+            modalMode = ModalCreateVaultEntry.VaultEntryModalMode.Create;
             showCreateModal = true;
         }
 
-        private void CancelCreateEntry()
+        private void CancelSaveEntry()
         {
             showCreateModal = false;
         }
 
-        private async Task ConfirmCreateEntry()
+        private async Task ConfirmSaveEntry()
         {
-            await CreateEntry();
+            await SaveEntry();
             showCreateModal = false;
         }
 
 
-        protected async Task CreateEntry()
+        /*private async Task UpdateEntry()
+        {
+            if (entryBeingEdited == null) return;
+
+            var (encryptedData, encryptedPassword) = 
+                await EncryptEntryAsync(newEntry);
+
+            var request = new UpdateVaultEntryRequest
+            {
+                EntryIdentifier = newEntry.Identifier,
+                EncryptedData = encryptedData,
+                EncryptedPassword = encryptedPassword
+            };
+
+            await VaultEntryService.UpdateVaultEntryAsync(request);
+
+            // Mise à jour locale
+            entryBeingEdited.Title = newEntry.Title;
+            entryBeingEdited.Username = newEntry.Username;
+            entryBeingEdited.Password = newEntry.Password;
+        }*/
+
+
+        private async Task<(string EncryptedData, string EncryptedPassword)> EncryptEntryAsync(DecryptedVaultEntry entry)
+        {
+            var dataToEncrypt = new
+            {
+                entry.Title,
+                entry.Username
+            };
+
+            var jsonData = JsonSerializer.Serialize(dataToEncrypt);
+
+            var encryptedData =
+                await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", jsonData);
+
+            var encryptedPassword =
+                await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", entry.Password);
+
+            return (encryptedData, encryptedPassword);
+        }
+        
+        private async Task SaveEntry()
+        {
+            var (encryptedData, encryptedPassword) =
+                await EncryptEntryAsync(newEntry);
+
+            if (newEntry.Identifier == Guid.Empty)
+            {
+                // CREATE
+                var request = new CreateVaultEntryRequest
+                {
+                    VaultIdentifier = VaultGuid,
+                    EncryptedData = encryptedData,
+                    EncryptedPassword = encryptedPassword
+                };
+
+                newEntry.Identifier = await VaultEntryService.CreateEntryAsync(request);
+                decryptedEntries.Add(newEntry);
+            }
+            else
+            {
+                // UPDATE
+                var request = new UpdateVaultEntryRequest
+                {
+                    EntryIdentifier = newEntry.Identifier,
+                    EncryptedData = encryptedData,
+                    EncryptedPassword = encryptedPassword
+                };
+
+                await VaultEntryService.UpdateVaultEntryAsync(request);
+
+                entryBeingEdited.Title = newEntry.Title;
+                entryBeingEdited.Username = newEntry.Username;
+                entryBeingEdited.Password = newEntry.Password;
+            }
+
+            newEntry = new();
+        }
+
+
+
+        /*protected async Task CreateEntry()
         {
             if (string.IsNullOrWhiteSpace(newEntry.Title)) return;
 
@@ -142,7 +249,7 @@ namespace PasswordManager.Web.Components.Pages
             var jsonData = JsonSerializer.Serialize(dataToEncrypt);
             
             var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", jsonData);
-            var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", newEntry.Password);
+            var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", newEntry.Password);#1#
 
             var request = new CreateVaultEntryRequest
             {
@@ -156,7 +263,7 @@ namespace PasswordManager.Web.Components.Pages
             newEntry.Identifier = createdId;
             decryptedEntries.Add(newEntry);
             newEntry = new();
-        }
+        }*/
 
         protected async Task ShowPassword(DecryptedVaultEntry entry)
         {

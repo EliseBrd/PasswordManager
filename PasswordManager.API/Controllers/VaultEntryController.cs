@@ -2,6 +2,7 @@
 
 using PasswordManager.API.Services.Interfaces;
 using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.API.Controllers
 {

@@ -12,4 +12,12 @@ public partial class ModalCreateVaultEntry : ComponentBase
     [Parameter] public EventCallback OnConfirm { get; set; }
 
     [Parameter] public EventCallback OnCancel { get; set; }
+    
+    [Parameter] public VaultEntryModalMode Mode { get; set; } = VaultEntryModalMode.Create;
+    
+    public enum VaultEntryModalMode
+    {
+        Create,
+        Edit
+    }
 }

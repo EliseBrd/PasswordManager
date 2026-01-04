@@ -1,5 +1,6 @@
 ﻿using PasswordManager.API.Objects;
 using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.API.Services.Interfaces
 {
