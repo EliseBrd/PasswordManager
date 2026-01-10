@@ -2,7 +2,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
-using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.Web.Services;
 
@@ -56,6 +56,20 @@ public class VaultEntryService
             var createdId = await response.Content.ReadFromJsonAsync<Guid>(_jsonOptions);
             return createdId;
         }
+        
+        public async Task UpdateVaultEntryAsync(UpdateVaultEntryRequest request)
+        {
+            var client = await CreateHttpClientAsync();
+
+            var response = await client.PutAsJsonAsync(
+                $"{_apiBaseUrl}/api/VaultEntry/{request.EntryIdentifier}",
+                request,
+                _jsonOptions
+            );
+
+            response.EnsureSuccessStatusCode();
+        }
+
         
         public async Task DeleteVaultEntryAsync(Guid identifier)
         {

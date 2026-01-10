@@ -13,12 +13,18 @@ public partial class VaultEntry : ComponentBase
     [Parameter] public string Category { get; set; } = "Default";
     [Parameter] public EventCallback OnShowPassword { get; set; }
     [Parameter] public EventCallback<Guid> OnAskDelete { get; set; }
+    [Parameter] public EventCallback<Guid> OnAskEdit { get; set; }
     
     [Inject] IJSRuntime JS { get; set; } = default!;
     
     private async Task AskDelete()
     {
         await OnAskDelete.InvokeAsync(Identifier);
+    }
+    
+    private async Task AskEdit()
+    {
+        await OnAskEdit.InvokeAsync(Identifier);
     }
 
     private string CategoryIcon => Category?.ToLower() switch

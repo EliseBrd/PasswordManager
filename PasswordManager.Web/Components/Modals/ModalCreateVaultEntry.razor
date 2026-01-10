@@ -9,7 +9,9 @@
 
                         <div class="vaultEntryCreateHeader">
                             <i class="fa-solid fa-key"></i>
-                            <h2>Nouvelle entrée</h2>
+                            <h2>
+                                @(Mode == VaultEntryModalMode.Create ? "Nouvelle entrée" : "Modifier l’entrée")
+                            </h2>
                             <p>Renseignez les informations ci-dessous</p>
                         </div>
 
@@ -41,7 +43,7 @@
 
                             <button class="btn-primary" @onclick="OnConfirm">
                                 <i class="fa-solid fa-check"></i>
-                                Enregistrer
+                                @(Mode == VaultEntryModalMode.Create ? "Créer" : "Enregistrer")
                             </button>
 
                             <button class="btn-secondary" @onclick="OnCancel">
