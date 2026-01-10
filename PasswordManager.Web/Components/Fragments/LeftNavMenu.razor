@@ -27,20 +27,20 @@
         <div class="menuSection">
             <h3 class="sectionTitle">FILTRES</h3>
             <ul class="menuList">
-                <li class="menuItem active">
+                <li class="menuItem @(VaultState.CurrentFilter == null ? "active" : "")" @onclick="() => FilterVaults(null)">
                     <i class="fa-solid fa-inbox"></i>
                     Tous les coffres
-                    <span class="menuCount">12</span>
+                    <span class="menuCount">@TotalCount</span>
                 </li>
-                <li class="menuItem">
+                <li class="menuItem @(VaultState.CurrentFilter == false ? "active" : "")" @onclick="() => FilterVaults(false)">
                     <i class="fa-solid fa-lock"></i>
                     Personnels
-                    <span class="menuCount">8</span>
+                    <span class="menuCount">@PersonalCount</span>
                 </li>
-                <li class="menuItem">
+                <li class="menuItem @(VaultState.CurrentFilter == true ? "active" : "")" @onclick="() => FilterVaults(true)">
                     <i class="fa-solid fa-users"></i>
                     Partagés
-                    <span class="menuCount">4</span>
+                    <span class="menuCount">@SharedCount</span>
                 </li>
             </ul>
         </div>

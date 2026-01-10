@@ -8,8 +8,29 @@ using PasswordManager.API.Repositories.Interfaces;
 using PasswordManager.API.Services;
 using PasswordManager.API.Services.Interfaces;
 using System.Text.Json.Serialization;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// --- Serilog Configuration ---
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    // Logs généraux (tout sauf EF Core)
+    .WriteTo.File("Logs/app-.txt", 
+        rollingInterval: RollingInterval.Day,
+        restrictedToMinimumLevel: LogEventLevel.Information)
+    // Logs spécifiques Base de Données (EF Core)
+    .WriteTo.Logger(l => l
+        .Filter.ByIncludingOnly(e => e.Properties.ContainsKey("SourceContext") && 
+                                     (e.Properties["SourceContext"].ToString().Contains("Microsoft.EntityFrameworkCore") || 
+                                      e.Properties["SourceContext"].ToString().Contains("Microsoft.Data.Sqlite")))
+        .WriteTo.File("Logs/db-.txt", rollingInterval: RollingInterval.Day))
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));

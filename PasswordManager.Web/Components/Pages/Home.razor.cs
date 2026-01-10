@@ -5,9 +5,10 @@ using PasswordManager.Web.Services;
 
 namespace PasswordManager.Web.Components.Pages;
 
-public partial class Home : ComponentBase
+public partial class Home : ComponentBase, IDisposable
 {
     [Inject] protected VaultService VaultService { get; set; } = default!;
+    [Inject] protected VaultStateService VaultState { get; set; } = default!;
     [Inject] protected MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler { get; set; } = default!;
 
     private List<VaultSummaryResponse> vaults = new();
@@ -15,12 +16,29 @@ public partial class Home : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        VaultState.OnFilterChanged += HandleFilterChanged;
+        await LoadVaultsAsync();
+    }
+
+    private async void HandleFilterChanged()
+    {
+        await LoadVaultsAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadVaultsAsync()
+    {
+        IsLoading = true;
         try
         {
-            var accessibleVaults = await VaultService.GetAccessibleVaultsAsync();
+            var accessibleVaults = await VaultService.GetAccessibleVaultsAsync(VaultState.CurrentFilter);
             if (accessibleVaults != null)
             {
                 vaults = accessibleVaults.ToList();
+            }
+            else
+            {
+                vaults = new List<VaultSummaryResponse>();
             }
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
@@ -35,5 +53,10 @@ public partial class Home : ComponentBase
         {
             IsLoading = false;
         }
+    }
+
+    public void Dispose()
+    {
+        VaultState.OnFilterChanged -= HandleFilterChanged;
     }
 }
