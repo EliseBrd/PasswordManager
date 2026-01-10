@@ -16,11 +16,6 @@ public partial class VaultEntry : ComponentBase
     
     [Inject] IJSRuntime JS { get; set; } = default!;
     
-    private async Task Copy(string text)
-    {
-        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
-    }
-    
     private async Task AskDelete()
     {
         await OnAskDelete.InvokeAsync(Identifier);

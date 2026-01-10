@@ -23,20 +23,17 @@
     <div class="vaultField">
         <i class="fa-solid fa-user"></i>
         <span>@Username</span>
-        <button class="copyBtn" @onclick="() => Copy(Username)">
-            <i class="fa-regular fa-copy"></i>
-        </button>
     </div>
 
     <div class="vaultField">
         <i class="fa-solid fa-key"></i>
         <span>@(string.IsNullOrEmpty(Password) ? "••••••••" : Password)</span>
         <button class="showBtn" @onclick="OnShowPassword">
-            <i class="fa-regular fa-eye"></i>
+            <i class="@(string.IsNullOrEmpty(Password)
+                          ? "fa-regular fa-eye-slash"
+                          : "fa-regular fa-eye")"></i>
         </button>
-        <button class="copyBtn" @onclick="() => Copy(Password)">
-            <i class="fa-regular fa-copy"></i>
-        </button>
+
     </div>
 
     <div class="vaultFooter">

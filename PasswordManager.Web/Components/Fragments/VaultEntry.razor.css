@@ -32,13 +32,13 @@
     display: flex;
     align-items: center;
     padding: 10px 15px;
-    background: #f3f4f6;
+    background: #ebebeb;
     border-radius: 10px;
     gap: 10px;
     color: #8C9099;
 }
 
-.copyBtn {
+.showBtn {
     background: transparent;
     border: none;
     margin-left: auto;
