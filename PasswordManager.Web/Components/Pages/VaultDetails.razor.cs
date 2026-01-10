@@ -158,30 +158,6 @@ namespace PasswordManager.Web.Components.Pages
             showCreateModal = false;
         }
 
-
-        /*private async Task UpdateEntry()
-        {
-            if (entryBeingEdited == null) return;
-
-            var (encryptedData, encryptedPassword) = 
-                await EncryptEntryAsync(newEntry);
-
-            var request = new UpdateVaultEntryRequest
-            {
-                EntryIdentifier = newEntry.Identifier,
-                EncryptedData = encryptedData,
-                EncryptedPassword = encryptedPassword
-            };
-
-            await VaultEntryService.UpdateVaultEntryAsync(request);
-
-            // Mise à jour locale
-            entryBeingEdited.Title = newEntry.Title;
-            entryBeingEdited.Username = newEntry.Username;
-            entryBeingEdited.Password = newEntry.Password;
-        }*/
-
-
         private async Task<(string EncryptedData, string EncryptedPassword)> EncryptEntryAsync(DecryptedVaultEntry entry)
         {
             var dataToEncrypt = new
@@ -238,33 +214,7 @@ namespace PasswordManager.Web.Components.Pages
 
             newEntry = new();
         }
-
-
-
-        /*protected async Task CreateEntry()
-        {
-            if (string.IsNullOrWhiteSpace(newEntry.Title)) return;
-
-            var dataToEncrypt = new { newEntry.Title, newEntry.Username };
-            var jsonData = JsonSerializer.Serialize(dataToEncrypt);
-            
-            var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", jsonData);
-            var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", newEntry.Password);#1#
-
-            var request = new CreateVaultEntryRequest
-            {
-                VaultIdentifier = VaultGuid,
-                EncryptedData = encryptedData,
-                EncryptedPassword = encryptedPassword
-            };
-
-            var createdId = await VaultEntryService.CreateEntryAsync(request);
-
-            newEntry.Identifier = createdId;
-            decryptedEntries.Add(newEntry);
-            newEntry = new();
-        }*/
-
+        
         protected async Task ShowPassword(DecryptedVaultEntry entry)
         {
             if (!string.IsNullOrEmpty(entry.Password))
