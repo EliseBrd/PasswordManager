@@ -34,6 +34,7 @@ namespace PasswordManager.Web.Components.Pages
         private bool showDeleteModal;
         private Guid entryToDelete;
         private bool showDeleteVaultModal = false;
+        private bool showEditVaultModal = false;
 
         
         private void AskDeleteEntry(Guid id)
@@ -71,7 +72,37 @@ namespace PasswordManager.Web.Components.Pages
             // retour à la home après suppression
             Navigation.NavigateTo("/");
         }
+        
+        private void AskEditVault()
+        {
+            showEditVaultModal  = true;
+        }
 
+        private void CancelEditVault()
+        {
+            showEditVaultModal  = false;
+        }
+
+        private async Task ConfirmEditVault(UpdateVaultRequest request)
+        {
+            // 🔐 Si changement de mot de passe → crypto JS
+            if (!string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                var crypto = await JSRuntime.InvokeAsync<CreateVault.CryptoResult>(
+                    "cryptoFunctions.createVaultCrypto",
+                    request.NewPassword);
+
+                request.MasterSalt = crypto.MasterSalt;
+                request.EncryptedKey = crypto.EncryptedKey;
+            }
+
+            await VaultService.UpdateVaultAsync(VaultGuid, request);
+
+            showEditVaultModal = false;
+
+            // 🔄 Recharge le vault après modification
+            await LoadVault();
+        }
         
         protected override async Task OnInitializedAsync()
         {
@@ -235,6 +266,37 @@ namespace PasswordManager.Web.Components.Pages
         private void GoBack()
         {
             Navigation.NavigateTo("/");
+        }
+        
+        private async Task LoadVault()
+        {
+            if (VaultGuid == Guid.Empty) return;
+
+            try
+            {
+                vault = await VaultService.GetVaultDetailsAsync(VaultGuid);
+
+                // Si le vault était déjà déverrouillé, on peut le redéverrouiller
+                if (isUnlocked && unlockedVaultData != null)
+                {
+                    decryptedEntries.Clear();
+                    foreach (var entryDto in unlockedVaultData.Entries)
+                    {
+                        var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", entryDto.EncryptedData);
+                        var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        if (entryDetails != null)
+                        {
+                            entryDetails.Identifier = entryDto.Identifier;
+                            decryptedEntries.Add(entryDetails);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "Impossible de charger les détails du coffre.";
+                Logger.LogError(ex, "Error loading vault");
+            }
         }
 
     }

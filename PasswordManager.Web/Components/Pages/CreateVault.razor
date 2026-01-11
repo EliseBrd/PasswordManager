@@ -30,25 +30,8 @@
                        @oninput="OnPasswordInput" />
             </div>
 
-            <!-- GÉNÉRATEUR -->
-            <button type="button"
-                    class="btn-secondary"
-                    @onclick="GeneratePassword">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                Générer un mot de passe
-            </button>
-
-            <!-- FORCE & ENTROPIE -->
-            <div class="passwordStrength">
-                <div class="strengthBar"
-                     style="width:@BarWidth%; background-color:@StrengthColor">
-                </div>
-
-                <span class="strengthLabel" style="color:@StrengthColor">
-                    @(string.IsNullOrEmpty(_vaultPassword) ? "" : $"{_strengthLabel} ({_passwordEntropy:0.0} bits)")
-                </span>
-
-            </div>
+            <!-- Composant réutilisable -->
+            <PasswordTools Password="@_vaultPassword" OnGenerated="@OnPasswordGenerated" />
 
             <button type="button"
                     class="btn-primary"

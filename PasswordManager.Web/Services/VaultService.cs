@@ -139,5 +139,14 @@ namespace PasswordManager.Web.Services
             response.EnsureSuccessStatusCode();
         }
 
+        public async Task UpdateVaultAsync(Guid vaultId, UpdateVaultRequest request)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.PutAsJsonAsync(
+                $"{_apiBaseUrl}/api/vault/{vaultId}", request, _jsonOptions);
+
+            response.EnsureSuccessStatusCode();
+        }
+
     }
 }
