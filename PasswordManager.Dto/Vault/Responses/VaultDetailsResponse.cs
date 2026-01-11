@@ -11,6 +11,6 @@ namespace PasswordManager.Dto.Vault.Responses
         public Guid CreatorIdentifier { get; set; }
         public bool IsCreator { get; set; }
         public bool IsShared { get; set; }
-        public List<UserSummaryResponse> SharedWith { get; set; } = new();
+        public List<VaultUserResponse> SharedWith { get; set; } = new();
     }
 }

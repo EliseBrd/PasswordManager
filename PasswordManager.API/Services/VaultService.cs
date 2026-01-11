@@ -81,9 +81,16 @@ namespace PasswordManager.API.Services
                 CreatorIdentifier = creatorId,
                 CreatedAt = DateTime.UtcNow,
                 LastUpdatedAt = DateTime.UtcNow,
-                IsShared = false,
-                SharedUsers = new HashSet<AppUser> { creator }
+                IsShared = false
             };
+
+            // Add creator access as Admin
+            vault.UserAccesses.Add(new VaultUserAccess
+            {
+                VaultIdentifier = vault.Identifier,
+                UserIdentifier = creatorId,
+                IsAdmin = true
+            });
 
             await _repository.AddAsync(vault);
             _logger.LogInformation("Vault {VaultId} created successfully", vault.Identifier);
@@ -118,7 +125,9 @@ namespace PasswordManager.API.Services
             var vault = await _repository.GetByIdAsync(vaultId);
             if (vault == null) return false;
 
-            if (vault.CreatorIdentifier != requestingUserId)
+            // Check if requester is admin
+            var userAccess = vault.UserAccesses.FirstOrDefault(ua => ua.UserIdentifier == requestingUserId);
+            if (userAccess == null || !userAccess.IsAdmin)
             {
                 _logger.LogWarning("Unauthorized sharing update attempt on Vault {VaultId} by User {UserId}", vaultId, requestingUserId);
                 return false;
@@ -144,12 +153,17 @@ namespace PasswordManager.API.Services
             return true;
         }
 
+        public async Task<bool> DeleteVaultAsync(Guid vaultId)
+        {
+            return await DeleteAsync(vaultId);
+        }
+
         public async Task<bool> ShareVaultAsync(Guid vaultId, Guid userId)
         {
             return await UpdateVaultSharingAsync(vaultId, true, userId);
         }
 
-        public async Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userIdToAdd, Guid requestingUserId)
+        public async Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userIdToAdd, bool isAdmin, Guid requestingUserId)
         {
             var vault = await _repository.GetByIdWithSharedUsersAsync(vaultId);
             if (vault == null || !vault.IsShared)
@@ -158,9 +172,11 @@ namespace PasswordManager.API.Services
                 return false;
             }
 
-            if (vault.CreatorIdentifier != requestingUserId)
+            // Check if requester is admin
+            var requesterAccess = vault.UserAccesses.FirstOrDefault(ua => ua.UserIdentifier == requestingUserId);
+            if (requesterAccess == null || !requesterAccess.IsAdmin)
             {
-                _logger.LogWarning("AddUserToVault failed: User {UserId} is not the creator of Vault {VaultId}", requestingUserId, vaultId);
+                _logger.LogWarning("AddUserToVault failed: User {UserId} is not admin of Vault {VaultId}", requestingUserId, vaultId);
                 return false;
             }
 
@@ -171,10 +187,23 @@ namespace PasswordManager.API.Services
                 return false;
             }
 
-            vault.SharedUsers.Add(userToAdd);
-            await _repository.UpdateAsync(vault);
+            // Check if user already has access
+            if (vault.UserAccesses.Any(ua => ua.UserIdentifier == userIdToAdd))
+            {
+                _logger.LogWarning("AddUserToVault failed: User {UserIdToAdd} already has access to Vault {VaultId}", userIdToAdd, vaultId);
+                return false;
+            }
+
+            var newAccess = new VaultUserAccess
+            {
+                VaultIdentifier = vaultId,
+                UserIdentifier = userIdToAdd,
+                IsAdmin = isAdmin
+            };
+
+            await _repository.AddUserAccessAsync(newAccess);
             
-            _logger.LogInformation("User {UserIdToAdd} added to Vault {VaultId}", userIdToAdd, vaultId);
+            _logger.LogInformation("User {UserIdToAdd} added to Vault {VaultId} (Admin: {IsAdmin})", userIdToAdd, vaultId, isAdmin);
             return true;
         }
 
@@ -183,30 +212,60 @@ namespace PasswordManager.API.Services
             var vault = await _repository.GetByIdWithSharedUsersAsync(vaultId);
             if (vault == null) return false;
 
-            if (vault.CreatorIdentifier != requestingUserId)
+            // Check if requester is admin
+            var requesterAccess = vault.UserAccesses.FirstOrDefault(ua => ua.UserIdentifier == requestingUserId);
+            if (requesterAccess == null || !requesterAccess.IsAdmin)
             {
-                _logger.LogWarning("RemoveUserFromVault failed: User {UserId} is not the creator", requestingUserId);
+                _logger.LogWarning("RemoveUserFromVault failed: User {UserId} is not admin", requestingUserId);
                 return false;
             }
 
-            var userToRemove = vault.SharedUsers.FirstOrDefault(u => u.Identifier == userIdToRemove);
-            if (userToRemove == null)
+            var accessToRemove = vault.UserAccesses.FirstOrDefault(ua => ua.UserIdentifier == userIdToRemove);
+            if (accessToRemove == null)
             {
                 _logger.LogWarning("RemoveUserFromVault failed: User {UserIdToRemove} not found in vault", userIdToRemove);
                 return false;
             }
 
             // Cannot remove the creator
-            if (userToRemove.Identifier == vault.CreatorIdentifier)
+            if (userIdToRemove == vault.CreatorIdentifier)
             {
                 _logger.LogWarning("RemoveUserFromVault failed: Cannot remove creator from vault");
                 return false;
             }
 
-            vault.SharedUsers.Remove(userToRemove);
-            await _repository.UpdateAsync(vault);
+            await _repository.RemoveUserAccessAsync(vaultId, userIdToRemove);
             
             _logger.LogInformation("User {UserIdToRemove} removed from Vault {VaultId}", userIdToRemove, vaultId);
+            return true;
+        }
+
+        public async Task<bool> UpdateUserAccessAsync(Guid vaultId, Guid userIdToUpdate, bool isAdmin, Guid requestingUserId)
+        {
+            var vault = await _repository.GetByIdWithSharedUsersAsync(vaultId);
+            if (vault == null) return false;
+
+            // Check if requester is admin
+            var requesterAccess = vault.UserAccesses.FirstOrDefault(ua => ua.UserIdentifier == requestingUserId);
+            if (requesterAccess == null || !requesterAccess.IsAdmin)
+            {
+                return false;
+            }
+
+            // Cannot change creator's admin status
+            if (userIdToUpdate == vault.CreatorIdentifier)
+            {
+                return false;
+            }
+
+            var accessToUpdate = vault.UserAccesses.FirstOrDefault(ua => ua.UserIdentifier == userIdToUpdate);
+            if (accessToUpdate == null)
+            {
+                return false;
+            }
+
+            accessToUpdate.IsAdmin = isAdmin;
+            await _repository.UpdateUserAccessAsync(accessToUpdate);
             return true;
         }
 
