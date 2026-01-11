@@ -26,14 +26,6 @@
     transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-.btnShare {
-    
-}
-
-.btnDelete {
-
-}
-
 .vaultEntries {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
