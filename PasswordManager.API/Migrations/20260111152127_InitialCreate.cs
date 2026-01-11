@@ -51,30 +51,6 @@ namespace PasswordManager.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AppUserVault",
-                columns: table => new
-                {
-                    SharedUsersIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
-                    SharedVaultsIdentifier = table.Column<Guid>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AppUserVault", x => new { x.SharedUsersIdentifier, x.SharedVaultsIdentifier });
-                    table.ForeignKey(
-                        name: "FK_AppUserVault_Users_SharedUsersIdentifier",
-                        column: x => x.SharedUsersIdentifier,
-                        principalTable: "Users",
-                        principalColumn: "Identifier",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AppUserVault_Vaults_SharedVaultsIdentifier",
-                        column: x => x.SharedVaultsIdentifier,
-                        principalTable: "Vaults",
-                        principalColumn: "Identifier",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "VaultEntries",
                 columns: table => new
                 {
@@ -107,15 +83,35 @@ namespace PasswordManager.API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "VaultUserAccesses",
+                columns: table => new
+                {
+                    VaultIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VaultUserAccesses", x => new { x.VaultIdentifier, x.UserIdentifier });
+                    table.ForeignKey(
+                        name: "FK_VaultUserAccesses_Users_UserIdentifier",
+                        column: x => x.UserIdentifier,
+                        principalTable: "Users",
+                        principalColumn: "Identifier",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VaultUserAccesses_Vaults_VaultIdentifier",
+                        column: x => x.VaultIdentifier,
+                        principalTable: "Vaults",
+                        principalColumn: "Identifier",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Identifier", "Email", "entraId" },
                 values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "", new Guid("00000000-0000-0000-0000-000000000001") });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AppUserVault_SharedVaultsIdentifier",
-                table: "AppUserVault",
-                column: "SharedVaultsIdentifier");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VaultEntries_CreatorIdentifier",
@@ -128,20 +124,24 @@ namespace PasswordManager.API.Migrations
                 column: "VaultIdentifier");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Vaults_CreatorIdentifier_Name",
+                name: "IX_Vaults_CreatorIdentifier",
                 table: "Vaults",
-                columns: new[] { "CreatorIdentifier", "Name" },
-                unique: true);
+                column: "CreatorIdentifier");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VaultUserAccesses_UserIdentifier",
+                table: "VaultUserAccesses",
+                column: "UserIdentifier");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AppUserVault");
+                name: "VaultEntries");
 
             migrationBuilder.DropTable(
-                name: "VaultEntries");
+                name: "VaultUserAccesses");
 
             migrationBuilder.DropTable(
                 name: "Vaults");

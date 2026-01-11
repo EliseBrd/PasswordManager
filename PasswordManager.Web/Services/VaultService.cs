@@ -117,10 +117,10 @@ namespace PasswordManager.Web.Services
             return response.IsSuccessStatusCode;
         }
 
-        public async Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userId)
+        public async Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userId, bool isAdmin)
         {
             var client = await CreateHttpClientAsync();
-            var request = new AddUserToVaultRequest { UserId = userId };
+            var request = new AddUserToVaultRequest { UserId = userId, IsAdmin = isAdmin };
             var response = await client.PostAsJsonAsync($"{_apiBaseUrl}/api/vault/{vaultId}/users", request, _jsonOptions);
             return response.IsSuccessStatusCode;
         }
@@ -139,5 +139,12 @@ namespace PasswordManager.Web.Services
             response.EnsureSuccessStatusCode();
         }
 
+        public async Task<bool> UpdateUserAccessAsync(Guid vaultId, Guid userId, bool isAdmin)
+        {
+            var client = await CreateHttpClientAsync();
+            var request = new UpdateUserAccessRequest { UserId = userId, IsAdmin = isAdmin };
+            var response = await client.PutAsJsonAsync($"{_apiBaseUrl}/api/vault/{vaultId}/users/{userId}", request, _jsonOptions);
+            return response.IsSuccessStatusCode;
+        }
     }
 }
