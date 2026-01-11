@@ -131,5 +131,13 @@ namespace PasswordManager.Web.Services
             var response = await client.DeleteAsync($"{_apiBaseUrl}/api/vault/{vaultId}/users/{userId}");
             return response.IsSuccessStatusCode;
         }
+        
+        public async Task DeleteVaultAsync(Guid vaultId)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.DeleteAsync($"{_apiBaseUrl}/api/vault/{vaultId}");
+            response.EnsureSuccessStatusCode();
+        }
+
     }
 }

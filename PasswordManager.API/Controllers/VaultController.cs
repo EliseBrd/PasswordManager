@@ -249,5 +249,22 @@ namespace PasswordManager.API.Controllers
 
             return NoContent();
         }
+        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteVault(Guid id)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+                return Unauthorized("User not found or session is invalid.");
+
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+                return StatusCode(403, "You are not authorized to delete this vault.");
+
+            var success = await _vaultService.DeleteAsync(id);
+            if (!success)
+                return NotFound();
+
+            return NoContent();
+        }
     }
 }
