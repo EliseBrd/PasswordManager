@@ -1,6 +1,8 @@
 ﻿<div class="vaultCard">
     <div class="vaultHeader">
-        <h3 class="titleVault">@Title</h3>
+        <!-- Zero-Knowledge : Le titre est rempli par JS via l'ID -->
+        <h3 class="titleVault" id="@TitleId">Chargement...</h3>
+        
         <div class="dropdown">
             <button class="btn p-0"
                     type="button"
@@ -15,6 +17,10 @@
                         <i class="fa-solid fa-trash me-2"></i>
                         Supprimer
                     </button>
+                    <button class="dropdown-item text-primary" @onclick="AskEdit">
+                        <i class="fa-solid fa-pen me-2"></i>
+                        Modifier
+                    </button>
                 </li>
             </ul>
         </div>
@@ -22,18 +28,18 @@
 
     <div class="vaultField">
         <i class="fa-solid fa-user"></i>
-        <span>@Username</span>
+        <!-- Zero-Knowledge : Le username est rempli par JS via l'ID -->
+        <span id="@UsernameId">Chargement...</span>
     </div>
 
     <div class="vaultField">
         <i class="fa-solid fa-key"></i>
-        <span>@(string.IsNullOrEmpty(Password) ? "••••••••" : Password)</span>
-        <button class="showBtn" @onclick="OnShowPassword">
-            <i class="@(string.IsNullOrEmpty(Password)
-                          ? "fa-regular fa-eye-slash"
-                          : "fa-regular fa-eye")"></i>
+        <!-- Zero-Knowledge : Le mot de passe est rempli par JS via l'ID -->
+        <span id="@PasswordId">••••••••</span>
+        
+        <button class="showBtn" @onclick="ShowPassword">
+            <i class="fa-regular fa-eye"></i>
         </button>
-
     </div>
 
     <div class="vaultFooter">
@@ -41,4 +47,3 @@
         <span class="category">@Category</span>
     </div>
 </div>
-

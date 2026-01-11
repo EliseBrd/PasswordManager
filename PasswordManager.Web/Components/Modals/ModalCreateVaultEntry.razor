@@ -17,26 +17,26 @@
 
                             <div class="sectionForm">
                                 <label for="vaultEntryTitle">Titre</label>
-                                <input id="vaultEntryTitle" 
+                                <!-- Zero-Knowledge : Pas de @bind -->
+                                <input id="vaultEntryTitleInput" 
                                        type="text" 
-                                       placeholder="Ex : Instagram" 
-                                       @bind="Entry.Title" />
+                                       placeholder="Ex : Instagram" />
                             </div>
 
                             <div class="sectionForm">
                                 <label for="vaultEntryUsername">Nom d'utilisateur/ E-mail</label>
-                                <input id="vaultEntryUsername" 
+                                <!-- Zero-Knowledge : Pas de @bind -->
+                                <input id="vaultEntryUsernameInput" 
                                        type="text"
-                                       placeholder="Ex : test@gmail.com"
-                                       @bind="Entry.Username" />
+                                       placeholder="Ex : test@gmail.com" />
                             </div>
 
                             <div class="sectionForm">
                                 <label for="vaultEntryPassword">Mot de passe</label>
-                                <input id="vaultEntryPassword" 
+                                <!-- Zero-Knowledge : Pas de @bind -->
+                                <input id="vaultEntryPasswordInput" 
                                        type="password"
-                                       placeholder="Ex : BenjiLaFrappeDu53" 
-                                       @bind="Entry.Password" />
+                                       placeholder="Ex : BenjiLaFrappeDu53" />
                             </div>
 
                             <button class="btn-primary" @onclick="OnConfirm">

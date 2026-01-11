@@ -7,7 +7,8 @@ public partial class ModalCreateVaultEntry : ComponentBase
 {
     [Parameter] public bool IsOpen { get; set; }
 
-    [Parameter] public VaultDetails.DecryptedVaultEntry Entry { get; set; } = new();
+    // Mise à jour du type pour correspondre au nouveau ViewModel
+    [Parameter] public VaultDetails.VaultEntryViewModel Entry { get; set; } = new();
 
     [Parameter] public EventCallback OnConfirm { get; set; }
 
