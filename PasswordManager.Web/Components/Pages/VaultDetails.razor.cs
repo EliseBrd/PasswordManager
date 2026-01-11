@@ -33,6 +33,8 @@ namespace PasswordManager.Web.Components.Pages
         private bool showCreateModal;
         private bool showDeleteModal;
         private Guid entryToDelete;
+        private bool showDeleteVaultModal = false;
+
         
         private void AskDeleteEntry(Guid id)
         {
@@ -50,6 +52,26 @@ namespace PasswordManager.Web.Components.Pages
         {
             showDeleteModal = false;
         }
+        
+        private void AskDeleteVault()
+        {
+            showDeleteVaultModal = true;
+        }
+
+        private void CancelDeleteVault()
+        {
+            showDeleteVaultModal = false;
+        }
+
+        private async Task ConfirmDeleteVault()
+        {
+            await VaultService.DeleteVaultAsync(VaultGuid);
+            showDeleteVaultModal = false;
+
+            // retour à la home après suppression
+            Navigation.NavigateTo("/");
+        }
+
         
         protected override async Task OnInitializedAsync()
         {

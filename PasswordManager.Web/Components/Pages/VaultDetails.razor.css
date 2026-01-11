@@ -8,11 +8,15 @@
     margin-bottom: 0;
 }
 
-.btnShare{
+.vaultActions {
+    display: flex;
+    gap: 8px;
+}
+
+.btnShare, .btnDelete {
     padding: 12px 20px;
     border-radius: var(--radius-md);
     font-size: 14px;
-    font-weight: 600;
     cursor: pointer;
     border: 1px solid transparent;
     display: flex;
@@ -20,6 +24,14 @@
     justify-content: center;
     gap: 8px;
     transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.btnShare {
+    
+}
+
+.btnDelete {
+
 }
 
 .vaultEntries {

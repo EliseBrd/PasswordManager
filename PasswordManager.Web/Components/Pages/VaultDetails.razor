@@ -31,9 +31,18 @@ else
         <h1 class="titleHome"><i class="fa-solid fa-unlock"></i> @vault.Name</h1>
         @if (vault.IsCreator)
          {
-         <button class="btnShare @(vault.IsShared ? "btn-success" : "btn-secondary")" @onclick="ToggleShare">
-            @(vault.IsShared ? "Partagé" : "Partager")
-            </button>
+             <div class="vaultActions">
+                 <button class="btnShare @(vault.IsShared ? "btn-success" : "btn-secondary")" @onclick="ToggleShare">
+                     <i class="fa-solid fa-share-from-square"></i>
+                     @(vault.IsShared ? "Partagé" : "Partager")
+                 </button>
+                 
+                 <button class="btnDelete btn-danger"
+                         @onclick="AskDeleteVault">
+                     <i class="fa-solid fa-trash"></i>
+                     Supprimer
+                 </button>
+             </div>
         } 
     </div>
     
@@ -78,4 +87,11 @@ else
         Message="Cette entrée sera définitivement supprimée. Continuer ?"
         OnConfirm="ConfirmDeleteEntry"
         OnCancel="CancelDelete" />
+    
+    <ModalValidateDelete
+        IsOpen="showDeleteVaultModal"
+        Message="Ce coffre et toutes ses entrées seront définitivement supprimés. Continuer ?"
+        OnConfirm="ConfirmDeleteVault"
+        OnCancel="CancelDeleteVault" />
+
 }
