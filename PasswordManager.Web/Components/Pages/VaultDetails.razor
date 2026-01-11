@@ -66,11 +66,8 @@ else
         {
             <VaultEntry
                 Identifier="@entry.Identifier"
-                Title="@entry.Title"
-                Username="@entry.Username"
-                Password="@entry.Password"
+                EncryptedData="@entry.EncryptedData"
                 OnAskDelete="AskDeleteEntry"
-                OnShowPassword="@(() => ShowPassword(entry))"
             />
         }
     </div>
