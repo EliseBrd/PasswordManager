@@ -22,15 +22,21 @@ public partial class VaultEntry : ComponentBase
     private string TitleId => $"title-{Identifier}";
     private string UsernameId => $"username-{Identifier}";
     private string PasswordId => $"password-{Identifier}";
-
+    
+    private string? _lastEncryptedData;
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !string.IsNullOrEmpty(EncryptedData))
+        if (!string.IsNullOrEmpty(EncryptedData) &&
+            EncryptedData != _lastEncryptedData)
         {
+            _lastEncryptedData = EncryptedData;
+
             // Appel JS pour déchiffrer et remplir les champs
             await JS.InvokeVoidAsync("cryptoFunctions.decryptAndFillEntry", EncryptedData, TitleId, UsernameId);
         }
     }
+
     
     private async Task ShowPassword()
     {

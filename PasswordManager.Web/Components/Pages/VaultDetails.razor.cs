@@ -39,7 +39,7 @@ namespace PasswordManager.Web.Components.Pages
         private bool showDeleteVaultModal = false;
 
         
-        private ModalCreateVaultEntry.VaultEntryModalMode modalMode;
+        private ModalCreateOrUpdateVaultEntry.VaultEntryModalMode modalMode;
         private VaultEntryViewModel? entryBeingEdited;
         
         private void AskDeleteEntry(Guid id)
@@ -50,7 +50,7 @@ namespace PasswordManager.Web.Components.Pages
         
         private void AskEditEntry(Guid id)
         {
-            var entry = decryptedEntries.First(e => e.Identifier == id);
+            var entryDto = decryptedEntries.First(e => e.Identifier == id);
 
             // Copie pour éviter modification directe avant validation
             newEntry = new VaultEntryViewModel
@@ -59,8 +59,8 @@ namespace PasswordManager.Web.Components.Pages
                 EncryptedData = entryDto.EncryptedData
             };
 
-            entryBeingEdited = entry;
-            modalMode = ModalCreateVaultEntry.VaultEntryModalMode.Edit;
+            entryBeingEdited = entryDto;
+            modalMode = ModalCreateOrUpdateVaultEntry.VaultEntryModalMode.Edit;
             showCreateModal = true;
         }
 
@@ -168,7 +168,7 @@ namespace PasswordManager.Web.Components.Pages
         {
             newEntry = new();
             entryBeingEdited = null;
-            modalMode = ModalCreateVaultEntry.VaultEntryModalMode.Create;
+            modalMode = ModalCreateOrUpdateVaultEntry.VaultEntryModalMode.Create;
             showCreateModal = true;
         }
 
@@ -183,8 +183,60 @@ namespace PasswordManager.Web.Components.Pages
             showCreateModal = false;
         }
 
+        private async Task SaveEntry()
+        {
+            // 🔐 Tout est récupéré et chiffré côté JS
+            var encryptedData = await JSRuntime.InvokeAsync<string>(
+                "cryptoFunctions.encryptEntryData",
+                "vaultEntryTitleInput",
+                "vaultEntryUsernameInput"
+            );
 
-        protected async Task CreateEntry()
+            var encryptedPassword = await JSRuntime.InvokeAsync<string>(
+                "cryptoFunctions.encryptInputValue",
+                "vaultEntryPasswordInput"
+            );
+
+            if (newEntry.Identifier == Guid.Empty)
+            {
+                // ===== CREATE =====
+                var request = new CreateVaultEntryRequest
+                {
+                    VaultIdentifier = VaultGuid,
+                    EncryptedData = encryptedData,
+                    EncryptedPassword = encryptedPassword
+                };
+
+                var createdId = await VaultEntryService.CreateEntryAsync(request);
+
+                decryptedEntries.Add(new VaultEntryViewModel
+                {
+                    Identifier = createdId,
+                    EncryptedData = encryptedData
+                });
+            }
+            else
+            {
+                // ===== UPDATE =====
+                var request = new UpdateVaultEntryRequest
+                {
+                    EntryIdentifier = newEntry.Identifier,
+                    EncryptedData = encryptedData,
+                    EncryptedPassword = encryptedPassword
+                };
+
+                await VaultEntryService.UpdateVaultEntryAsync(request);
+
+                // Mise à jour locale (pas de reload serveur)
+                var entry = decryptedEntries.First(e => e.Identifier == newEntry.Identifier);
+                entry.EncryptedData = encryptedData;
+            }
+
+            newEntry = new();
+        }
+
+
+        /*protected async Task CreateEntry()
         {
             // Zero-Knowledge : On récupère les données chiffrées directement depuis les inputs HTML
             var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptEntryData", "vaultEntryTitleInput", "vaultEntryUsernameInput");
@@ -209,7 +261,7 @@ namespace PasswordManager.Web.Components.Pages
             
             decryptedEntries.Add(entryToAdd);
             newEntry = new();
-        }
+        }*/
 
         // ShowPassword supprimé car géré par le composant VaultEntry
 

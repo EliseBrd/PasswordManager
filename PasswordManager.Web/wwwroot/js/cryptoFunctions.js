@@ -293,5 +293,25 @@
             binary += String.fromCharCode(bytes[i]);
         }
         return window.btoa(binary);
-    }
+    },
+
+    // Déchiffre une entrée et remplit les inputs de la MODAL (édition)
+    decryptAndFillEditModal: async function (encryptedData, titleInputId, usernameInputId) {
+        if (!encryptedData) return;
+
+        try {
+            const jsonString = await this.decryptData(encryptedData);
+            const data = JSON.parse(jsonString);
+
+            const titleInput = document.getElementById(titleInputId);
+            if (titleInput) titleInput.value = data.Title || "";
+
+            const usernameInput = document.getElementById(usernameInputId);
+            if (usernameInput) usernameInput.value = data.Username || "";
+
+        } catch (e) {
+            console.error("Erreur lors du remplissage de la modal d'édition:", e);
+        }
+    },
+
 };
