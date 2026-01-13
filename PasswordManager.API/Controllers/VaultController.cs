@@ -148,11 +148,14 @@ namespace PasswordManager.API.Controllers
                 CreatorIdentifier = vault.CreatorIdentifier,
                 IsCreator = vault.CreatorIdentifier == currentUser.Identifier,
                 IsShared = vault.IsShared,
-                SharedWith = vault.SharedUsers.Select(u => new UserSummaryResponse
-                {
-                    Identifier = u.Identifier,
-                    Email = u.Email
-                }).ToList()
+                SharedWith = vault.UserAccesses
+                    .Where(ua => ua.UserIdentifier != currentUser.Identifier) // Optionally exclude current user from list
+                    .Select(ua => new VaultUserResponse
+                    {
+                        Identifier = ua.User.Identifier,
+                        Email = ua.User.Email,
+                        IsAdmin = ua.IsAdmin
+                    }).ToList()
             };
             
             return Ok(response);
@@ -218,7 +221,7 @@ namespace PasswordManager.API.Controllers
                 return StatusCode(403, "You are not authorized to add users to this vault.");
             }
 
-            var success = await _vaultService.AddUserToVaultAsync(id, request.UserId, currentUser.Identifier);
+            var success = await _vaultService.AddUserToVaultAsync(id, request.UserId, request.IsAdmin, currentUser.Identifier);
             if (!success)
             {
                 return BadRequest("Could not add user to vault. Check if user exists and vault is shared.");
@@ -246,6 +249,46 @@ namespace PasswordManager.API.Controllers
             {
                 return NotFound();
             }
+
+            return NoContent();
+        }
+
+        [HttpPut("{id}/users/{userId}")]
+        public async Task<IActionResult> UpdateUserAccess(Guid id, Guid userId, [FromBody] UpdateUserAccessRequest request)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
+
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You are not authorized to manage users in this vault.");
+            }
+
+            var success = await _vaultService.UpdateUserAccessAsync(id, userId, request.IsAdmin, currentUser.Identifier);
+            if (!success)
+            {
+                return BadRequest("Could not update user access.");
+            }
+
+            return NoContent();
+        }
+        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteVault(Guid id)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+                return Unauthorized("User not found or session is invalid.");
+
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+                return StatusCode(403, "You are not authorized to delete this vault.");
+
+            var success = await _vaultService.DeleteAsync(id);
+            if (!success)
+                return NotFound();
 
             return NoContent();
         }

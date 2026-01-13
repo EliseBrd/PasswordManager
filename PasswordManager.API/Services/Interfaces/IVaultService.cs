@@ -14,7 +14,9 @@ namespace PasswordManager.API.Services.Interfaces
         Task<bool> UpdateVaultSharingAsync(Guid vaultId, bool isShared, Guid requestingUserId);
         Task<bool> DeleteAsync(Guid id);
         Task<bool> ShareVaultAsync(Guid vaultId, Guid userId);
-        Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userIdToAdd, Guid requestingUserId);
+        Task<bool> AddUserToVaultAsync(Guid vaultId, Guid userIdToAdd, bool isAdmin, Guid requestingUserId);
         Task<bool> RemoveUserFromVaultAsync(Guid vaultId, Guid userIdToRemove, Guid requestingUserId);
+        Task<bool> UpdateUserAccessAsync(Guid vaultId, Guid userIdToUpdate, bool isAdmin, Guid requestingUserId);
+        Task<bool> DeleteVaultAsync(Guid vaultId);
     }
 }

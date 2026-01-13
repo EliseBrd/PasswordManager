@@ -23,21 +23,23 @@ namespace PasswordManager.API.Repositories
         {
             return await _context.Vaults
                 .Include(v => v.Entries)
-                .Include(v => v.SharedUsers)
+                .Include(v => v.UserAccesses)
+                    .ThenInclude(ua => ua.User)
                 .FirstOrDefaultAsync(v => v.Identifier == id);
         }
 
         public async Task<Vault?> GetByIdWithSharedUsersAsync(Guid id)
         {
             return await _context.Vaults
-                .Include(v => v.SharedUsers)
+                .Include(v => v.UserAccesses)
+                    .ThenInclude(ua => ua.User)
                 .FirstOrDefaultAsync(v => v.Identifier == id);
         }
 
         public async Task<IEnumerable<Vault>> GetByUserIdAsync(Guid userId)
         {
             return await _context.Vaults
-                .Where(v => v.SharedUsers.Any(u => u.Identifier == userId))
+                .Where(v => v.UserAccesses.Any(ua => ua.UserIdentifier == userId))
                 .ToListAsync();
         }
 
@@ -61,6 +63,30 @@ namespace PasswordManager.API.Repositories
                 _context.Vaults.Remove(vault);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task AddUserAccessAsync(VaultUserAccess access)
+        {
+            _context.VaultUserAccesses.Add(access);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RemoveUserAccessAsync(Guid vaultId, Guid userId)
+        {
+            var access = await _context.VaultUserAccesses
+                .FirstOrDefaultAsync(ua => ua.VaultIdentifier == vaultId && ua.UserIdentifier == userId);
+            
+            if (access != null)
+            {
+                _context.VaultUserAccesses.Remove(access);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpdateUserAccessAsync(VaultUserAccess access)
+        {
+            _context.VaultUserAccesses.Update(access);
+            await _context.SaveChangesAsync();
         }
     }
 }
