@@ -6,5 +6,5 @@ public class UpdateVaultEntryRequest
 
     public string EncryptedData { get; set; } = string.Empty; // Title, Username, etc.
 
-    public string EncryptedPassword { get; set; } = string.Empty; // Password only
+    public string? EncryptedPassword { get; set; } = string.Empty; // Password only
 }

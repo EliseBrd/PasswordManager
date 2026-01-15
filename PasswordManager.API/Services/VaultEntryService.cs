@@ -103,7 +103,7 @@ public class VaultEntryService : IVaultEntryService
     public async Task<bool> UpdateEntryAsync(
         Guid entryId,
         string encryptedData,
-        string encryptedPassword)
+        string? encryptedPassword)
     {
         var entry = await _context.VaultEntries
             .FirstOrDefaultAsync(e => e.Identifier == entryId);
@@ -121,24 +121,29 @@ public class VaultEntryService : IVaultEntryService
         Buffer.BlockCopy(dataBytes, dataIv.Length, dataCiphertext, 0, dataCiphertext.Length);
         Buffer.BlockCopy(dataBytes, dataIv.Length + dataCiphertext.Length, dataTag, 0, dataTag.Length);
 
-        // ===== SPLIT EncryptedPassword =====
-        var passwordBytes = Convert.FromBase64String(encryptedPassword);
-        var passwordIv = new byte[12];
-        var passwordTag = new byte[16];
-        var passwordCiphertext = new byte[passwordBytes.Length - passwordIv.Length - passwordTag.Length];
-
-        Buffer.BlockCopy(passwordBytes, 0, passwordIv, 0, passwordIv.Length);
-        Buffer.BlockCopy(passwordBytes, passwordIv.Length, passwordCiphertext, 0, passwordCiphertext.Length);
-        Buffer.BlockCopy(passwordBytes, passwordIv.Length + passwordCiphertext.Length, passwordTag, 0, passwordTag.Length);
-
         // ===== UPDATE ENTITY =====
+        // ===== data (toujours) =====
         entry.IVData = Convert.ToBase64String(dataIv);
         entry.CypherData = Convert.ToBase64String(dataCiphertext);
         entry.TagData = Convert.ToBase64String(dataTag);
 
-        entry.IVPassword = Convert.ToBase64String(passwordIv);
-        entry.CypherPassword = Convert.ToBase64String(passwordCiphertext);
-        entry.TagPasswords = Convert.ToBase64String(passwordTag);
+        // ===== password (uniquement si fourni) =====
+        if (!string.IsNullOrEmpty(encryptedPassword))
+        {
+            // ===== SPLIT EncryptedPassword =====
+            var passwordBytes = Convert.FromBase64String(encryptedPassword);
+            var passwordIv = new byte[12];
+            var passwordTag = new byte[16];
+            var passwordCiphertext = new byte[passwordBytes.Length - passwordIv.Length - passwordTag.Length];
+
+            Buffer.BlockCopy(passwordBytes, 0, passwordIv, 0, passwordIv.Length);
+            Buffer.BlockCopy(passwordBytes, passwordIv.Length, passwordCiphertext, 0, passwordCiphertext.Length);
+            Buffer.BlockCopy(passwordBytes, passwordIv.Length + passwordCiphertext.Length, passwordTag, 0, passwordTag.Length);
+            
+            entry.IVPassword = Convert.ToBase64String(passwordIv);
+            entry.CypherPassword = Convert.ToBase64String(passwordCiphertext);
+            entry.TagPasswords = Convert.ToBase64String(passwordTag);
+        }
 
         entry.LastUpdatedAt = DateTime.UtcNow;
 

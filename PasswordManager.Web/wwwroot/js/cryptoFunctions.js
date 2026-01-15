@@ -314,4 +314,11 @@
         }
     },
 
+    hidePassword: function (entryId) {
+        const el = document.getElementById(`password-${entryId}`);
+        if (el) {
+            el.innerText = "••••••••";
+        }
+    }
+
 };
