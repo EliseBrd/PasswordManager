@@ -48,7 +48,7 @@ namespace PasswordManager.Web.Components.Pages
             showDeleteModal = true;
         }
         
-        private void AskEditEntry(Guid id)
+        private async void AskEditEntry(Guid id)
         {
             var entryDto = decryptedEntries.First(e => e.Identifier == id);
 
@@ -58,10 +58,16 @@ namespace PasswordManager.Web.Components.Pages
                 Identifier = entryDto.Identifier,
                 EncryptedData = entryDto.EncryptedData
             };
-
+            
             entryBeingEdited = entryDto;
             modalMode = ModalCreateOrUpdateVaultEntry.VaultEntryModalMode.Edit;
             showCreateModal = true;
+            
+            // MASQUER le mot de passe affiché
+            await JSRuntime.InvokeVoidAsync(
+                "cryptoFunctions.hidePassword",
+                id.ToString()
+            );
         }
 
         
@@ -222,7 +228,9 @@ namespace PasswordManager.Web.Components.Pages
                 {
                     EntryIdentifier = newEntry.Identifier,
                     EncryptedData = encryptedData,
-                    EncryptedPassword = encryptedPassword
+                    EncryptedPassword = string.IsNullOrWhiteSpace(encryptedPassword)
+                        ? null
+                        : encryptedPassword
                 };
 
                 await VaultEntryService.UpdateVaultEntryAsync(request);
