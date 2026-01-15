@@ -4,6 +4,8 @@ using PasswordManager.Dto.Vault.Requests;
 using PasswordManager.Dto.Vault.Responses;
 using PasswordManager.Web.Services;
 using System.Text.Json;
+using PasswordManager.Dto.VaultsEntries.Requests;
+using PasswordManager.Web.Components.Modals;
 
 namespace PasswordManager.Web.Components.Pages
 {
@@ -37,11 +39,31 @@ namespace PasswordManager.Web.Components.Pages
         private bool showDeleteVaultModal = false;
 
         
+        private ModalCreateOrUpdateVaultEntry.VaultEntryModalMode modalMode;
+        private VaultEntryViewModel? entryBeingEdited;
+        
         private void AskDeleteEntry(Guid id)
         {
             entryToDelete = id;
             showDeleteModal = true;
         }
+        
+        private void AskEditEntry(Guid id)
+        {
+            var entryDto = decryptedEntries.First(e => e.Identifier == id);
+
+            // Copie pour éviter modification directe avant validation
+            newEntry = new VaultEntryViewModel
+            {
+                Identifier = entryDto.Identifier,
+                EncryptedData = entryDto.EncryptedData
+            };
+
+            entryBeingEdited = entryDto;
+            modalMode = ModalCreateOrUpdateVaultEntry.VaultEntryModalMode.Edit;
+            showCreateModal = true;
+        }
+
         
         private async Task ConfirmDeleteEntry()
         {
@@ -145,45 +167,71 @@ namespace PasswordManager.Web.Components.Pages
         private void OpenCreateModal()
         {
             newEntry = new();
+            entryBeingEdited = null;
+            modalMode = ModalCreateOrUpdateVaultEntry.VaultEntryModalMode.Create;
             showCreateModal = true;
         }
 
-        private void CancelCreateEntry()
+        private void CancelSaveEntry()
         {
             showCreateModal = false;
         }
 
-        private async Task ConfirmCreateEntry()
+        private async Task ConfirmSaveEntry()
         {
-            await CreateEntry();
+            await SaveEntry();
             showCreateModal = false;
         }
 
-
-        protected async Task CreateEntry()
+        private async Task SaveEntry()
         {
-            // Zero-Knowledge : On récupère les données chiffrées directement depuis les inputs HTML
-            var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptEntryData", "vaultEntryTitleInput", "vaultEntryUsernameInput");
-            var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptInputValue", "vaultEntryPasswordInput");
+            // Tout est récupéré et chiffré côté JS
+            var encryptedData = await JSRuntime.InvokeAsync<string>(
+                "cryptoFunctions.encryptEntryData",
+                "vaultEntryTitleInput",
+                "vaultEntryUsernameInput"
+            );
 
-            var request = new CreateVaultEntryRequest
+            var encryptedPassword = await JSRuntime.InvokeAsync<string>(
+                "cryptoFunctions.encryptInputValue",
+                "vaultEntryPasswordInput"
+            );
+
+            if (newEntry.Identifier == Guid.Empty)
             {
-                VaultIdentifier = VaultGuid,
-                EncryptedData = encryptedData,
-                EncryptedPassword = encryptedPassword
-            };
+                // ===== CREATE =====
+                var request = new CreateVaultEntryRequest
+                {
+                    VaultIdentifier = VaultGuid,
+                    EncryptedData = encryptedData,
+                    EncryptedPassword = encryptedPassword
+                };
 
-            var createdId = await VaultEntryService.CreateEntryAsync(request);
+                var createdId = await VaultEntryService.CreateEntryAsync(request);
 
-            // Pour l'affichage, on ajoute simplement l'entrée avec ses données chiffrées
-            // Le composant VaultEntry se chargera de les déchiffrer et de les afficher
-            var entryToAdd = new VaultEntryViewModel
+                decryptedEntries.Add(new VaultEntryViewModel
+                {
+                    Identifier = createdId,
+                    EncryptedData = encryptedData
+                });
+            }
+            else
             {
-                Identifier = createdId,
-                EncryptedData = encryptedData
-            };
-            
-            decryptedEntries.Add(entryToAdd);
+                // ===== UPDATE =====
+                var request = new UpdateVaultEntryRequest
+                {
+                    EntryIdentifier = newEntry.Identifier,
+                    EncryptedData = encryptedData,
+                    EncryptedPassword = encryptedPassword
+                };
+
+                await VaultEntryService.UpdateVaultEntryAsync(request);
+
+                // Mise à jour locale (pas de reload serveur)
+                var entry = decryptedEntries.First(e => e.Identifier == newEntry.Identifier);
+                entry.EncryptedData = encryptedData;
+            }
+
             newEntry = new();
         }
 

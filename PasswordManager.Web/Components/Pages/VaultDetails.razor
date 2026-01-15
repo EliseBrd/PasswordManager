@@ -68,15 +68,17 @@ else
                 Identifier="@entry.Identifier"
                 EncryptedData="@entry.EncryptedData"
                 OnAskDelete="AskDeleteEntry"
+                OnAskEdit="AskEditEntry"
             />
         }
     </div>
     
-    <ModalCreateVaultEntry
+    <ModalCreateOrUpdateVaultEntry
         IsOpen="showCreateModal"
         Entry="newEntry"
-        OnConfirm="ConfirmCreateEntry"
-        OnCancel="CancelCreateEntry" />
+        Mode="modalMode"
+        OnConfirm="ConfirmSaveEntry"
+        OnCancel="CancelSaveEntry" />
 
     
     <ModalValidateDelete

@@ -2,6 +2,7 @@
 
 using PasswordManager.API.Services.Interfaces;
 using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.API.Controllers
 {
@@ -38,7 +39,7 @@ namespace PasswordManager.API.Controllers
         
         // PUT /api/vaultentries/{id} : Modifier une entrée dans un coffre
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEntry(Guid id, [FromBody] VaultEntry entry)
+        public async Task<IActionResult> UpdateEntry(Guid id, [FromBody] UpdateVaultEntryRequest  request)
         {
             var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
             if (currentUser == null) return Unauthorized("User not found or session is invalid.");
@@ -49,7 +50,11 @@ namespace PasswordManager.API.Controllers
                 return StatusCode(403, "You are not authorized to modify this entry.");
             }
 
-            var success = await _vaultEntryService.UpdateEntryAsync(entry);
+            var success = await _vaultEntryService.UpdateEntryAsync(
+                request.EntryIdentifier,
+                request.EncryptedData,
+                request.EncryptedPassword);
+
             if (!success)
                 return NotFound();
 
