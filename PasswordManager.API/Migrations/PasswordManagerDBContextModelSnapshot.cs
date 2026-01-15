@@ -17,21 +17,6 @@ namespace PasswordManager.API.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
-            modelBuilder.Entity("AppUserVault", b =>
-                {
-                    b.Property<Guid>("SharedUsersIdentifier")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("SharedVaultsIdentifier")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("SharedUsersIdentifier", "SharedVaultsIdentifier");
-
-                    b.HasIndex("SharedVaultsIdentifier");
-
-                    b.ToTable("AppUserVault");
-                });
-
             modelBuilder.Entity("PasswordManager.API.AppUser", b =>
                 {
                     b.Property<Guid>("Identifier")
@@ -103,10 +88,27 @@ namespace PasswordManager.API.Migrations
 
                     b.HasKey("Identifier");
 
-                    b.HasIndex("CreatorIdentifier", "Name")
-                        .IsUnique();
+                    b.HasIndex("CreatorIdentifier");
 
                     b.ToTable("Vaults");
+                });
+
+            modelBuilder.Entity("PasswordManager.API.Objects.VaultUserAccess", b =>
+                {
+                    b.Property<Guid>("VaultIdentifier")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserIdentifier")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("VaultIdentifier", "UserIdentifier");
+
+                    b.HasIndex("UserIdentifier");
+
+                    b.ToTable("VaultUserAccesses");
                 });
 
             modelBuilder.Entity("PasswordManager.API.VaultEntry", b =>
@@ -166,21 +168,6 @@ namespace PasswordManager.API.Migrations
                     b.ToTable("VaultEntries");
                 });
 
-            modelBuilder.Entity("AppUserVault", b =>
-                {
-                    b.HasOne("PasswordManager.API.AppUser", null)
-                        .WithMany()
-                        .HasForeignKey("SharedUsersIdentifier")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PasswordManager.API.Objects.Vault", null)
-                        .WithMany()
-                        .HasForeignKey("SharedVaultsIdentifier")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("PasswordManager.API.Objects.Vault", b =>
                 {
                     b.HasOne("PasswordManager.API.AppUser", "Creator")
@@ -190,6 +177,25 @@ namespace PasswordManager.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Creator");
+                });
+
+            modelBuilder.Entity("PasswordManager.API.Objects.VaultUserAccess", b =>
+                {
+                    b.HasOne("PasswordManager.API.AppUser", "User")
+                        .WithMany("VaultAccesses")
+                        .HasForeignKey("UserIdentifier")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PasswordManager.API.Objects.Vault", "Vault")
+                        .WithMany("UserAccesses")
+                        .HasForeignKey("VaultIdentifier")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Vault");
                 });
 
             modelBuilder.Entity("PasswordManager.API.VaultEntry", b =>
@@ -215,12 +221,16 @@ namespace PasswordManager.API.Migrations
                 {
                     b.Navigation("Entries");
 
+                    b.Navigation("VaultAccesses");
+
                     b.Navigation("Vaults");
                 });
 
             modelBuilder.Entity("PasswordManager.API.Objects.Vault", b =>
                 {
                     b.Navigation("Entries");
+
+                    b.Navigation("UserAccesses");
                 });
 #pragma warning restore 612, 618
         }

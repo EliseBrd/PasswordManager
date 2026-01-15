@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using PasswordManager.Dto.User;
+using PasswordManager.Dto.Vault.Responses;
 using PasswordManager.Web.Services;
 
 namespace PasswordManager.Web.Components.Vault
@@ -9,7 +10,7 @@ namespace PasswordManager.Web.Components.Vault
         [Inject] protected VaultService VaultService { get; set; } = default!;
 
         [Parameter] public Guid VaultId { get; set; } = default!;
-        [Parameter] public List<UserSummaryResponse> ExistingUsers { get; set; } = new();
+        [Parameter] public List<VaultUserResponse> ExistingUsers { get; set; } = new();
         [Parameter] public bool IsShared { get; set; }
         [Parameter] public EventCallback OnClose { get; set; }
         [Parameter] public EventCallback<bool> OnSharingChanged { get; set; }
@@ -77,12 +78,18 @@ namespace PasswordManager.Web.Components.Vault
             errorMessage = "";
             try
             {
-                var success = await VaultService.AddUserToVaultAsync(VaultId, user.Identifier);
+                // Par défaut, on ajoute comme simple utilisateur (non admin)
+                var success = await VaultService.AddUserToVaultAsync(VaultId, user.Identifier, false);
                 if (success)
                 {
                     searchQuery = "";
                     searchResults.Clear();
-                    ExistingUsers.Add(user);
+                    ExistingUsers.Add(new VaultUserResponse 
+                    { 
+                        Identifier = user.Identifier, 
+                        Email = user.Email,
+                        IsAdmin = false
+                    });
                     StateHasChanged();
                 }
                 else
@@ -97,7 +104,7 @@ namespace PasswordManager.Web.Components.Vault
             }
         }
 
-        protected async Task RemoveUser(UserSummaryResponse user)
+        protected async Task RemoveUser(VaultUserResponse user)
         {
             errorMessage = "";
             try
@@ -117,6 +124,29 @@ namespace PasswordManager.Web.Components.Vault
             {
                 errorMessage = $"Erreur lors de la suppression: {ex.Message}";
                 Console.WriteLine($"Error removing user: {ex.Message}");
+            }
+        }
+
+        protected async Task ToggleAdmin(VaultUserResponse user, bool makeAdmin)
+        {
+            errorMessage = "";
+            try
+            {
+                var success = await VaultService.UpdateUserAccessAsync(VaultId, user.Identifier, makeAdmin);
+                if (success)
+                {
+                    user.IsAdmin = makeAdmin;
+                    StateHasChanged();
+                }
+                else
+                {
+                    errorMessage = "Impossible de modifier les droits.";
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Erreur lors de la modification des droits: {ex.Message}";
+                Console.WriteLine($"Error updating user rights: {ex.Message}");
             }
         }
     }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PasswordManager.Dto.Vault.Requests
+namespace PasswordManager.Dto.VaultsEntries.Requests
 {
     public class CreateVaultEntryRequest
     {

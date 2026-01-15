@@ -15,34 +15,32 @@ namespace PasswordManager.API.Services
 
         public async Task<bool> CanAccessVaultAsync(Guid userId, Guid vaultId)
         {
-            return await _context.Vaults
-                .AnyAsync(v => v.Identifier == vaultId && 
-                               (v.CreatorIdentifier == userId || v.SharedUsers.Any(u => u.Identifier == userId)));
+            return await _context.VaultUserAccesses
+                .AnyAsync(ua => ua.VaultIdentifier == vaultId && ua.UserIdentifier == userId);
         }
 
         public async Task<bool> CanManageVaultAsync(Guid userId, Guid vaultId)
         {
-            return await _context.Vaults
-                .AnyAsync(v => v.Identifier == vaultId && v.CreatorIdentifier == userId);
+            return await _context.VaultUserAccesses
+                .AnyAsync(ua => ua.VaultIdentifier == vaultId && ua.UserIdentifier == userId && ua.IsAdmin);
         }
 
         public async Task<bool> CanAccessVaultEntryAsync(Guid userId, Guid entryId)
         {
+            // Correction : On passe par VaultUserAccesses directement pour éviter l'erreur sur SharedUsers
+            // On vérifie s'il existe un accès pour cet utilisateur sur le coffre qui contient l'entrée
             return await _context.VaultEntries
-                .Include(e => e.Vault)
-                .ThenInclude(v => v.SharedUsers)
                 .Where(e => e.Identifier == entryId)
-                .AnyAsync(e => e.CreatorIdentifier == userId || 
-                               e.Vault.CreatorIdentifier == userId ||
-                               e.Vault.SharedUsers.Any(u => u.Identifier == userId));
+                .Join(_context.VaultUserAccesses,
+                    entry => entry.VaultIdentifier,
+                    access => access.VaultIdentifier,
+                    (entry, access) => access)
+                .AnyAsync(access => access.UserIdentifier == userId);
         }
 
         public async Task<bool> CanManageVaultEntryAsync(Guid userId, Guid entryId)
         {
-            return await _context.VaultEntries
-                .Include(e => e.Vault)
-                .Where(e => e.Identifier == entryId)
-                .AnyAsync(e => e.CreatorIdentifier == userId || e.Vault.CreatorIdentifier == userId);
+            return await CanAccessVaultEntryAsync(userId, entryId);
         }
     }
 }

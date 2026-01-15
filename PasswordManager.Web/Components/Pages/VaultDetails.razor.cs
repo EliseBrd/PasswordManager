@@ -4,6 +4,8 @@ using PasswordManager.Dto.Vault.Requests;
 using PasswordManager.Dto.Vault.Responses;
 using PasswordManager.Web.Services;
 using System.Text.Json;
+using PasswordManager.Dto.VaultsEntries.Requests;
+using PasswordManager.Web.Components.Modals;
 
 namespace PasswordManager.Web.Components.Pages
 {
@@ -25,10 +27,11 @@ namespace PasswordManager.Web.Components.Pages
         protected bool isUnlocked = false;
         protected string errorMessage = "";
         
-        protected List<DecryptedVaultEntry> decryptedEntries = new();
+        // Zero-Knowledge : On stocke les données chiffrées, pas les données en clair
+        protected List<VaultEntryViewModel> decryptedEntries = new();
         
         protected bool showShareModal = false;
-        protected DecryptedVaultEntry newEntry = new();
+        protected VaultEntryViewModel newEntry = new();
         
         private bool showCreateModal;
         private bool showDeleteModal;
@@ -37,11 +40,37 @@ namespace PasswordManager.Web.Components.Pages
         private bool showEditVaultModal = false;
 
         
+        private ModalCreateOrUpdateVaultEntry.VaultEntryModalMode modalMode;
+        private VaultEntryViewModel? entryBeingEdited;
+        
         private void AskDeleteEntry(Guid id)
         {
             entryToDelete = id;
             showDeleteModal = true;
         }
+        
+        private async void AskEditEntry(Guid id)
+        {
+            var entryDto = decryptedEntries.First(e => e.Identifier == id);
+
+            // Copie pour éviter modification directe avant validation
+            newEntry = new VaultEntryViewModel
+            {
+                Identifier = entryDto.Identifier,
+                EncryptedData = entryDto.EncryptedData
+            };
+            
+            entryBeingEdited = entryDto;
+            modalMode = ModalCreateOrUpdateVaultEntry.VaultEntryModalMode.Edit;
+            showCreateModal = true;
+            
+            // MASQUER le mot de passe affiché
+            await JSRuntime.InvokeVoidAsync(
+                "cryptoFunctions.hidePassword",
+                id.ToString()
+            );
+        }
+
         
         private async Task ConfirmDeleteEntry()
         {
@@ -149,14 +178,17 @@ namespace PasswordManager.Web.Components.Pages
                 decryptedEntries.Clear();
                 foreach (var entryDto in unlockedVaultData.Entries)
                 {
-                    var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", entryDto.EncryptedData);
-                    var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    if (entryDetails != null)
+                    // Zero-Knowledge : On ne déchiffre plus ici !
+                    // On passe directement les données chiffrées au ViewModel
+                    // Le composant VaultEntry se chargera de l'affichage via JS
+                    
+                    var entryViewModel = new VaultEntryViewModel
                     {
-                        entryDetails.Identifier = entryDto.Identifier;
-
-                        decryptedEntries.Add(entryDetails);
-                    }
+                        Identifier = entryDto.Identifier,
+                        EncryptedData = entryDto.EncryptedData
+                    };
+                    
+                    decryptedEntries.Add(entryViewModel);
                 }
                 isUnlocked = true;
                 errorMessage = "";
@@ -172,61 +204,77 @@ namespace PasswordManager.Web.Components.Pages
         private void OpenCreateModal()
         {
             newEntry = new();
+            entryBeingEdited = null;
+            modalMode = ModalCreateOrUpdateVaultEntry.VaultEntryModalMode.Create;
             showCreateModal = true;
         }
 
-        private void CancelCreateEntry()
+        private void CancelSaveEntry()
         {
             showCreateModal = false;
         }
 
-        private async Task ConfirmCreateEntry()
+        private async Task ConfirmSaveEntry()
         {
-            await CreateEntry();
+            await SaveEntry();
             showCreateModal = false;
         }
 
-
-        protected async Task CreateEntry()
+        private async Task SaveEntry()
         {
-            if (string.IsNullOrWhiteSpace(newEntry.Title)) return;
+            // Tout est récupéré et chiffré côté JS
+            var encryptedData = await JSRuntime.InvokeAsync<string>(
+                "cryptoFunctions.encryptEntryData",
+                "vaultEntryTitleInput",
+                "vaultEntryUsernameInput"
+            );
 
-            var dataToEncrypt = new { newEntry.Title, newEntry.Username };
-            var jsonData = JsonSerializer.Serialize(dataToEncrypt);
-            
-            var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", jsonData);
-            var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptData", newEntry.Password);
+            var encryptedPassword = await JSRuntime.InvokeAsync<string>(
+                "cryptoFunctions.encryptInputValue",
+                "vaultEntryPasswordInput"
+            );
 
-            var request = new CreateVaultEntryRequest
+            if (newEntry.Identifier == Guid.Empty)
             {
-                VaultIdentifier = VaultGuid,
-                EncryptedData = encryptedData,
-                EncryptedPassword = encryptedPassword
-            };
+                // ===== CREATE =====
+                var request = new CreateVaultEntryRequest
+                {
+                    VaultIdentifier = VaultGuid,
+                    EncryptedData = encryptedData,
+                    EncryptedPassword = encryptedPassword
+                };
 
-            var createdId = await VaultEntryService.CreateEntryAsync(request);
+                var createdId = await VaultEntryService.CreateEntryAsync(request);
 
-            newEntry.Identifier = createdId;
-            decryptedEntries.Add(newEntry);
+                decryptedEntries.Add(new VaultEntryViewModel
+                {
+                    Identifier = createdId,
+                    EncryptedData = encryptedData
+                });
+            }
+            else
+            {
+                // ===== UPDATE =====
+                var request = new UpdateVaultEntryRequest
+                {
+                    EntryIdentifier = newEntry.Identifier,
+                    EncryptedData = encryptedData,
+                    EncryptedPassword = string.IsNullOrWhiteSpace(encryptedPassword)
+                        ? null
+                        : encryptedPassword
+                };
+
+                await VaultEntryService.UpdateVaultEntryAsync(request);
+
+                // Mise à jour locale (pas de reload serveur)
+                var entry = decryptedEntries.First(e => e.Identifier == newEntry.Identifier);
+                entry.EncryptedData = encryptedData;
+            }
+
             newEntry = new();
         }
 
-        protected async Task ShowPassword(DecryptedVaultEntry entry)
-        {
-            if (!string.IsNullOrEmpty(entry.Password))
-                return;
-
-            var encryptedPassword =
-                await VaultEntryService.GetEntryPasswordAsync(entry.Identifier);
-
-            if (encryptedPassword != null)
-            {
-                entry.Password =
-                    await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", encryptedPassword);
-
-                StateHasChanged();
-            }
-        }
+        // ShowPassword supprimé car géré par le composant VaultEntry
 
         private async Task DeleteEntry(Guid entryId)
         {
@@ -255,12 +303,19 @@ namespace PasswordManager.Web.Components.Pages
             _ = JSRuntime.InvokeVoidAsync("cryptoFunctions.clearKey");
         }
 
-        public class DecryptedVaultEntry
+        // Renommé pour refléter que ce n'est plus "Decrypted" mais un ViewModel d'affichage
+        public class VaultEntryViewModel
         {
             public Guid Identifier { get; set; }
-            public string Title { get; set; } = "";
+            public string EncryptedData { get; set; } = ""; // Contient Titre + Username chiffrés
+            
+            // Password n'est plus stocké ici par défaut, il est récupéré à la demande
+            // On garde la propriété pour la compatibilité avec la méthode ShowPassword existante si besoin
+            public string Password { get; set; } = ""; 
+            
+            // Ces propriétés ne sont plus utilisées pour le transport, mais peuvent servir de cache si on déchiffre
+            public string Title { get; set; } = ""; 
             public string Username { get; set; } = "";
-            public string Password { get; set; } = "";
         }
         
         private void GoBack()

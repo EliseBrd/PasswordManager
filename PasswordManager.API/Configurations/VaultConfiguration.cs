@@ -44,14 +44,6 @@ namespace PasswordManager.API.Configurations
                 .WithMany(u => u.Vaults)
                 .HasForeignKey(v => v.CreatorIdentifier)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // Relation N→N : SharedUsers → SharedVaults (plusieurs users peut avoir plusieurs vaults
-            entity.HasMany(v => v.SharedUsers)
-                .WithMany(u => u.SharedVaults);
-
-            // Index unique (même utilisateur ne peut pas avoir deux coffres du même nom)
-            entity.HasIndex(e => new { e.CreatorIdentifier, e.Name })
-                .IsUnique();
         }
     }
 }

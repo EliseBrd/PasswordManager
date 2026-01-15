@@ -19,8 +19,6 @@ namespace PasswordManager.API.Configurations
             // --- Relations ---
             entity.HasMany(u => u.Vaults).WithOne(v => v.Creator).HasForeignKey(v => v.CreatorIdentifier);
 
-            entity.HasMany(u => u.SharedVaults).WithMany(v => v.SharedUsers);
-
             entity.HasMany(u => u.Entries).WithOne(e => e.Creator).HasForeignKey(e => e.CreatorIdentifier);
         }
     }

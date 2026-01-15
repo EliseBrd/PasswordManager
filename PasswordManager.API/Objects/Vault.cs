@@ -20,7 +20,7 @@
 
 
         public HashSet<VaultEntry> Entries { get; set; } = [];
-        public HashSet<AppUser> SharedUsers { get; set; } = [];
+        public HashSet<VaultUserAccess> UserAccesses { get; set; } = [];
         public AppUser? Creator { get; set; }
        
     }

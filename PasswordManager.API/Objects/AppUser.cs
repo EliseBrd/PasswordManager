@@ -10,7 +10,7 @@ namespace PasswordManager.API
 
 
         public HashSet<Vault> Vaults { get; set; } = [];
-        public HashSet<Vault> SharedVaults { get; set; } = [];
+        public HashSet<VaultUserAccess> VaultAccesses { get; set; } = [];
         public HashSet<VaultEntry> Entries { get; set; } = [];
     }
 }

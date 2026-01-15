@@ -194,6 +194,82 @@
             throw e;
         }
     },
+    
+    // --- NOUVELLES FONCTIONS POUR ZERO-KNOWLEDGE STRICT ---
+
+    // Lit la valeur d'un input HTML, la chiffre et retourne le résultat chiffré
+    encryptInputValue: async function (elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) return "";
+        
+        const value = element.value;
+        if (!value) return ""; 
+        
+        return await this.encryptData(value);
+    },
+
+    // Lit plusieurs inputs, construit un JSON, le chiffre et retourne le résultat chiffré
+    encryptEntryData: async function (titleId, usernameId) {
+        const titleEl = document.getElementById(titleId);
+        const usernameEl = document.getElementById(usernameId);
+        
+        const data = {
+            Title: titleEl ? titleEl.value : "",
+            Username: usernameEl ? usernameEl.value : ""
+        };
+        
+        const jsonData = JSON.stringify(data);
+        return await this.encryptData(jsonData);
+    },
+
+    // Déchiffre une donnée et remplit directement un input HTML
+    decryptAndFillInput: async function (encryptedData, elementId) {
+        if (!encryptedData) return;
+        
+        try {
+            const decryptedValue = await this.decryptData(encryptedData);
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.value = decryptedValue;
+            }
+        } catch (e) {
+            console.error("Erreur lors du remplissage de l'input:", e);
+        }
+    },
+    
+    // Déchiffre une entrée complète et remplit les champs d'affichage (Titre, Username)
+    decryptAndFillEntry: async function (encryptedData, titleId, usernameId) {
+        if (!encryptedData) return;
+
+        try {
+            const jsonString = await this.decryptData(encryptedData);
+            const data = JSON.parse(jsonString);
+
+            const titleEl = document.getElementById(titleId);
+            if (titleEl) titleEl.innerText = data.Title || "";
+
+            const usernameEl = document.getElementById(usernameId);
+            if (usernameEl) usernameEl.innerText = data.Username || "";
+
+        } catch (e) {
+            console.error("Erreur lors du déchiffrement de l'entrée:", e);
+        }
+    },
+    
+    // Déchiffre et affiche le mot de passe dans un élément spécifique
+    decryptAndShowPassword: async function (encryptedPassword, elementId) {
+        if (!encryptedPassword) return;
+        
+        try {
+            const decryptedPassword = await this.decryptData(encryptedPassword);
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerText = decryptedPassword;
+            }
+        } catch (e) {
+            console.error("Erreur lors du déchiffrement du mot de passe:", e);
+        }
+    },
 
     clearKey: function() {
         this.currentVaultKey = null;
@@ -217,5 +293,32 @@
             binary += String.fromCharCode(bytes[i]);
         }
         return window.btoa(binary);
+    },
+
+    // Déchiffre une entrée et remplit les inputs de la MODAL (édition)
+    decryptAndFillEditModal: async function (encryptedData, titleInputId, usernameInputId) {
+        if (!encryptedData) return;
+
+        try {
+            const jsonString = await this.decryptData(encryptedData);
+            const data = JSON.parse(jsonString);
+
+            const titleInput = document.getElementById(titleInputId);
+            if (titleInput) titleInput.value = data.Title || "";
+
+            const usernameInput = document.getElementById(usernameInputId);
+            if (usernameInput) usernameInput.value = data.Username || "";
+
+        } catch (e) {
+            console.error("Erreur lors du remplissage de la modal d'édition:", e);
+        }
+    },
+
+    hidePassword: function (entryId) {
+        const el = document.getElementById(`password-${entryId}`);
+        if (el) {
+            el.innerText = "••••••••";
+        }
     }
+
 };

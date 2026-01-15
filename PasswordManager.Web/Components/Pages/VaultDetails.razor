@@ -72,20 +72,19 @@ else
         {
             <VaultEntry
                 Identifier="@entry.Identifier"
-                Title="@entry.Title"
-                Username="@entry.Username"
-                Password="@entry.Password"
+                EncryptedData="@entry.EncryptedData"
                 OnAskDelete="AskDeleteEntry"
-                OnShowPassword="@(() => ShowPassword(entry))"
+                OnAskEdit="AskEditEntry"
             />
         }
     </div>
     
-    <ModalCreateVaultEntry
+    <ModalCreateOrUpdateVaultEntry
         IsOpen="showCreateModal"
         Entry="newEntry"
-        OnConfirm="ConfirmCreateEntry"
-        OnCancel="CancelCreateEntry" />
+        Mode="modalMode"
+        OnConfirm="ConfirmSaveEntry"
+        OnCancel="CancelSaveEntry" />
 
     
     <ModalValidateDelete
