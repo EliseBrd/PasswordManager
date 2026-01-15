@@ -185,7 +185,7 @@ namespace PasswordManager.Web.Components.Pages
 
         private async Task SaveEntry()
         {
-            // 🔐 Tout est récupéré et chiffré côté JS
+            // Tout est récupéré et chiffré côté JS
             var encryptedData = await JSRuntime.InvokeAsync<string>(
                 "cryptoFunctions.encryptEntryData",
                 "vaultEntryTitleInput",
@@ -234,34 +234,6 @@ namespace PasswordManager.Web.Components.Pages
 
             newEntry = new();
         }
-
-
-        /*protected async Task CreateEntry()
-        {
-            // Zero-Knowledge : On récupère les données chiffrées directement depuis les inputs HTML
-            var encryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptEntryData", "vaultEntryTitleInput", "vaultEntryUsernameInput");
-            var encryptedPassword = await JSRuntime.InvokeAsync<string>("cryptoFunctions.encryptInputValue", "vaultEntryPasswordInput");
-
-            var request = new CreateVaultEntryRequest
-            {
-                VaultIdentifier = VaultGuid,
-                EncryptedData = encryptedData,
-                EncryptedPassword = encryptedPassword
-            };
-
-            var createdId = await VaultEntryService.CreateEntryAsync(request);
-
-            // Pour l'affichage, on ajoute simplement l'entrée avec ses données chiffrées
-            // Le composant VaultEntry se chargera de les déchiffrer et de les afficher
-            var entryToAdd = new VaultEntryViewModel
-            {
-                Identifier = createdId,
-                EncryptedData = encryptedData
-            };
-            
-            decryptedEntries.Add(entryToAdd);
-            newEntry = new();
-        }*/
 
         // ShowPassword supprimé car géré par le composant VaultEntry
 
