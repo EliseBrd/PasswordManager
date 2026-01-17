@@ -101,24 +101,43 @@ namespace PasswordManager.API.Services
         {
             return await _repository.GetByIdAsync(id);
         }
-
-        public async Task<bool> UpdateVaultAsync(Vault vault)
+        
+        public async Task<bool> UpdateVaultAsync(Guid vaultId, UpdateVaultRequest request, Guid userId)
         {
-            var existing = await _repository.GetByIdAsync(vault.Identifier);
-            if (existing == null)
+            var vault = await _repository.GetByIdAsync(vaultId);
+            if (vault == null)
             {
                 _logger.LogWarning("Update failed: Vault {VaultId} not found", vault.Identifier);
                 return false;
             }
+
+            if (vault.CreatorIdentifier != userId)
+            {
+                _logger.LogWarning("Update failed: User {UserId} not creator", userId);
+                return false;
+            }
             
-            existing.Name = vault.Name;
-            existing.LastUpdatedAt = DateTime.UtcNow;
-            existing.IsShared = vault.IsShared;
-            await _repository.UpdateAsync(existing);
+            vault.Name = request.Name;
+            vault.LastUpdatedAt = DateTime.UtcNow;
             
+            if (!string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                if (string.IsNullOrWhiteSpace(request.MasterSalt) ||
+                    string.IsNullOrWhiteSpace(request.EncryptedKey))
+                {
+                    throw new InvalidOperationException("Crypto material missing");
+                }
+
+                vault.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                vault.MasterSalt = request.MasterSalt;
+                vault.EncryptKey = request.EncryptedKey;
+            }
+
+            await _repository.UpdateAsync(vault);
             _logger.LogInformation("Vault {VaultId} updated", vault.Identifier);
             return true;
         }
+
 
         public async Task<bool> UpdateVaultSharingAsync(Guid vaultId, bool isShared, Guid requestingUserId)
         {

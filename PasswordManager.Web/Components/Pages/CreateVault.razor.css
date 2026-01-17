@@ -72,8 +72,7 @@
     border-color: var(--primary-color, #4F46E5);
 }
 
-.btn-primary,
-.btn-secondary {
+.btn-primary {
     width: 100%;
     border: none;
     border-radius: 8px;
@@ -83,35 +82,16 @@
     margin-top: 0.75rem;
     transition: 0.2s;
     box-shadow: none;
-}
-
-.btn-primary:focus,
-.btn-secondary:focus {
-    box-shadow: none;
-    border-color: inherit;
-}
-
-.btn-primary {
     background-color: var(--primary-color, #4F46E5);
     color: white;
+}
+
+.btn-primary:focus {
+    box-shadow: none;
+    border-color: inherit;
 }
 
 .btn-primary:hover, .btn-primary:focus {
     background-color: var(--primary-hover, #4338CA);
 }
 
-.passwordStrength {
-    margin-top: 10px;
-}
-
-.strengthBar {
-    height: 8px;
-    border-radius: 6px;
-    transition: width 0.3s ease, background-color 0.3s ease;
-}
-
-.strengthLabel {
-    display: block;
-    margin-top: 6px;
-    font-weight: 500;
-}

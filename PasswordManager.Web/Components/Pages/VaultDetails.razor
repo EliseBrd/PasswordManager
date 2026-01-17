@@ -37,6 +37,12 @@ else
                      @(vault.IsShared ? "Partagé" : "Partager")
                  </button>
                  
+                 <button class="btnUpdate btn-primary" 
+                         @onclick="AskEditVault">
+                     <i class="fa-solid fa-pen-to-square"></i> 
+                     Modifier
+                 </button>
+                 
                  <button class="btnDelete btn-danger"
                          @onclick="AskDeleteVault">
                      <i class="fa-solid fa-trash"></i>
@@ -92,5 +98,12 @@ else
         Message="Ce coffre et toutes ses entrées seront définitivement supprimés. Continuer ?"
         OnConfirm="ConfirmDeleteVault"
         OnCancel="CancelDeleteVault" />
+    
+    <ModalEditVault
+        IsOpen="showEditVaultModal"
+        InitialName="@vault.Name"
+        OnConfirm="ConfirmEditVault"
+        OnCancel="CancelEditVault" />
+
 
 }

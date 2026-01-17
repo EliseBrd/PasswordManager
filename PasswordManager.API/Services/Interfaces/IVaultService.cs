@@ -10,7 +10,7 @@ namespace PasswordManager.API.Services.Interfaces
         Task<Vault?> GetVaultByIdAsync(Guid id);
         Task<Vault> CreateVaultAsync(CreateVaultRequest request, Guid creatorId);
         Task<Vault?> AccessVaultAsync(Guid vaultId, string password);
-        Task<bool> UpdateVaultAsync(Vault vault);
+        Task<bool> UpdateVaultAsync(Guid vaultId, UpdateVaultRequest request, Guid userId);
         Task<bool> UpdateVaultSharingAsync(Guid vaultId, bool isShared, Guid requestingUserId);
         Task<bool> DeleteAsync(Guid id);
         Task<bool> ShareVaultAsync(Guid vaultId, Guid userId);

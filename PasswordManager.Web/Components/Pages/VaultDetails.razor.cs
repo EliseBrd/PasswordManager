@@ -37,6 +37,7 @@ namespace PasswordManager.Web.Components.Pages
         private bool showDeleteModal;
         private Guid entryToDelete;
         private bool showDeleteVaultModal = false;
+        private bool showEditVaultModal = false;
 
         
         private ModalCreateOrUpdateVaultEntry.VaultEntryModalMode modalMode;
@@ -100,26 +101,59 @@ namespace PasswordManager.Web.Components.Pages
             // retour à la home après suppression
             Navigation.NavigateTo("/");
         }
+        
+        private void AskEditVault()
+        {
+            showEditVaultModal  = true;
+        }
 
+        private void CancelEditVault()
+        {
+            showEditVaultModal  = false;
+        }
+
+        private async Task ConfirmEditVault(UpdateVaultRequest request)
+        {
+            bool passwordChanged = !string.IsNullOrWhiteSpace(request.NewPassword);
+
+            // Si changement de mot de passe → crypto JS
+            if (passwordChanged)
+            {
+                // Utilisation de changeMasterPassword pour conserver la clé du coffre
+                var crypto = await JSRuntime.InvokeAsync<CreateVault.CryptoResult>(
+                    "cryptoFunctions.changeMasterPassword",
+                    request.NewPassword);
+
+                request.MasterSalt = crypto.MasterSalt;
+                request.EncryptedKey = crypto.EncryptedKey;
+            }
+
+            await VaultService.UpdateVaultAsync(VaultGuid, request);
+
+            showEditVaultModal = false;
+
+            if (passwordChanged)
+            {
+                // SÉCURITÉ : On verrouille le coffre pour forcer l'utilisateur à se reconnecter
+                // Cela garantit qu'il connait bien le nouveau mot de passe
+                isUnlocked = false;
+                decryptedEntries.Clear();
+                unlockedVaultData = null;
+                masterPassword = "";
+                
+                // On vide la clé en mémoire JS
+                await JSRuntime.InvokeVoidAsync("cryptoFunctions.clearKey");
+                
+                errorMessage = "Mot de passe modifié. Veuillez déverrouiller le coffre à nouveau.";
+            }
+
+            // Recharge le vault (si pas de changement de mdp, on reste connecté, sinon on verra le formulaire de login)
+            await LoadVault();
+        }
         
         protected override async Task OnInitializedAsync()
         {
-            try
-            {
-                if (VaultGuid != Guid.Empty)
-                {
-                    vault = await VaultService.GetVaultDetailsAsync(VaultGuid);
-                }
-                else
-                {
-                    errorMessage = "ID de coffre invalide.";
-                }
-            }
-            catch (Exception ex)
-            {
-                errorMessage = "Impossible de charger les détails du coffre.";
-                Logger.LogError(ex, "Error loading vault details");
-            }
+            await LoadVault();
         }
 
         protected async Task UnlockVault()
@@ -290,6 +324,27 @@ namespace PasswordManager.Web.Components.Pages
         private void GoBack()
         {
             Navigation.NavigateTo("/");
+        }
+        
+        private async Task LoadVault()
+        {
+            if (VaultGuid == Guid.Empty) 
+            {
+                errorMessage = "ID de coffre invalide.";
+                return;
+            }
+
+            try
+            {
+                vault = await VaultService.GetVaultDetailsAsync(VaultGuid);
+                // On ne recharge pas les entrées ici car elles sont chiffrées et nécessitent le mot de passe.
+                // Si le coffre est déjà déverrouillé, les entrées sont déjà dans decryptedEntries.
+            }
+            catch (Exception ex)
+            {
+                errorMessage = "Impossible de charger les détails du coffre.";
+                Logger.LogError(ex, "Error loading vault");
+            }
         }
 
     }
