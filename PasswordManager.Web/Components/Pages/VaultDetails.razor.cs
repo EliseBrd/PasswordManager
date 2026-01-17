@@ -114,11 +114,14 @@ namespace PasswordManager.Web.Components.Pages
 
         private async Task ConfirmEditVault(UpdateVaultRequest request)
         {
-            // 🔐 Si changement de mot de passe → crypto JS
-            if (!string.IsNullOrWhiteSpace(request.NewPassword))
+            bool passwordChanged = !string.IsNullOrWhiteSpace(request.NewPassword);
+
+            // Si changement de mot de passe → crypto JS
+            if (passwordChanged)
             {
+                // Utilisation de changeMasterPassword pour conserver la clé du coffre
                 var crypto = await JSRuntime.InvokeAsync<CreateVault.CryptoResult>(
-                    "cryptoFunctions.createVaultCrypto",
+                    "cryptoFunctions.changeMasterPassword",
                     request.NewPassword);
 
                 request.MasterSalt = crypto.MasterSalt;
@@ -129,28 +132,28 @@ namespace PasswordManager.Web.Components.Pages
 
             showEditVaultModal = false;
 
-            // 🔄 Recharge le vault après modification
+            if (passwordChanged)
+            {
+                // SÉCURITÉ : On verrouille le coffre pour forcer l'utilisateur à se reconnecter
+                // Cela garantit qu'il connait bien le nouveau mot de passe
+                isUnlocked = false;
+                decryptedEntries.Clear();
+                unlockedVaultData = null;
+                masterPassword = "";
+                
+                // On vide la clé en mémoire JS
+                await JSRuntime.InvokeVoidAsync("cryptoFunctions.clearKey");
+                
+                errorMessage = "Mot de passe modifié. Veuillez déverrouiller le coffre à nouveau.";
+            }
+
+            // Recharge le vault (si pas de changement de mdp, on reste connecté, sinon on verra le formulaire de login)
             await LoadVault();
         }
         
         protected override async Task OnInitializedAsync()
         {
-            try
-            {
-                if (VaultGuid != Guid.Empty)
-                {
-                    vault = await VaultService.GetVaultDetailsAsync(VaultGuid);
-                }
-                else
-                {
-                    errorMessage = "ID de coffre invalide.";
-                }
-            }
-            catch (Exception ex)
-            {
-                errorMessage = "Impossible de charger les détails du coffre.";
-                Logger.LogError(ex, "Error loading vault details");
-            }
+            await LoadVault();
         }
 
         protected async Task UnlockVault()
@@ -325,27 +328,17 @@ namespace PasswordManager.Web.Components.Pages
         
         private async Task LoadVault()
         {
-            if (VaultGuid == Guid.Empty) return;
+            if (VaultGuid == Guid.Empty) 
+            {
+                errorMessage = "ID de coffre invalide.";
+                return;
+            }
 
             try
             {
                 vault = await VaultService.GetVaultDetailsAsync(VaultGuid);
-
-                // Si le vault était déjà déverrouillé, on peut le redéverrouiller
-                if (isUnlocked && unlockedVaultData != null)
-                {
-                    decryptedEntries.Clear();
-                    foreach (var entryDto in unlockedVaultData.Entries)
-                    {
-                        var decryptedData = await JSRuntime.InvokeAsync<string>("cryptoFunctions.decryptData", entryDto.EncryptedData);
-                        var entryDetails = JsonSerializer.Deserialize<DecryptedVaultEntry>(decryptedData, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                        if (entryDetails != null)
-                        {
-                            entryDetails.Identifier = entryDto.Identifier;
-                            decryptedEntries.Add(entryDetails);
-                        }
-                    }
-                }
+                // On ne recharge pas les entrées ici car elles sont chiffrées et nécessitent le mot de passe.
+                // Si le coffre est déjà déverrouillé, les entrées sont déjà dans decryptedEntries.
             }
             catch (Exception ex)
             {

@@ -1,5 +1,5 @@
 ﻿window.cryptoFunctions = {
-    currentVaultKey: null, // Store the decrypted key here
+    currentVaultKey: null, // Store the decrypted key here (ArrayBuffer)
 
     createVaultCrypto: async function (password) {
         try {
@@ -61,6 +61,71 @@
 
         } catch (e) {
             console.error("Erreur JS dans createVaultCrypto:", e);
+            throw e;
+        }
+    },
+
+    changeMasterPassword: async function (newPassword) {
+        if (!this.currentVaultKey) {
+            throw new Error("Vault is locked. Cannot change password.");
+        }
+
+        try {
+            // 1. Generate New Salt (64 bytes)
+            const salt = window.crypto.getRandomValues(new Uint8Array(64));
+
+            // 2. Derive New KEK from newPassword + salt
+            const passwordBuffer = new TextEncoder().encode(newPassword);
+            const baseKey = await window.crypto.subtle.importKey(
+                "raw",
+                passwordBuffer,
+                { name: "PBKDF2" },
+                false,
+                ["deriveBits"]
+            );
+
+            const derivedBits = await window.crypto.subtle.deriveBits(
+                {
+                    name: "PBKDF2",
+                    salt: salt,
+                    iterations: 100000,
+                    hash: "SHA-256",
+                },
+                baseKey,
+                256 // 256 bits = 32 bytes
+            );
+
+            const kek = await window.crypto.subtle.importKey(
+                "raw",
+                derivedBits,
+                { name: "AES-GCM" },
+                false,
+                ["encrypt"]
+            );
+
+            // 3. Encrypt EXISTING Vault Key with New KEK
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const encryptedVaultKey = await window.crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: iv,
+                },
+                kek,
+                this.currentVaultKey // Encrypt the existing decrypted vault key
+            );
+
+            // Concatenate IV + EncryptedData
+            const resultBuffer = new Uint8Array(iv.byteLength + encryptedVaultKey.byteLength);
+            resultBuffer.set(iv, 0);
+            resultBuffer.set(new Uint8Array(encryptedVaultKey), iv.byteLength);
+
+            return {
+                masterSalt: this.arrayBufferToBase64(salt.buffer),
+                encryptedKey: this.arrayBufferToBase64(resultBuffer.buffer)
+            };
+
+        } catch (e) {
+            console.error("Erreur JS dans changeMasterPassword:", e);
             throw e;
         }
     },
