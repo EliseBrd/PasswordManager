@@ -297,6 +297,24 @@ namespace PasswordManager.API.Controllers
 
             return NoContent();
         }
+        
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateVault(Guid id, [FromBody] UpdateVaultRequest request)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+                return Unauthorized();
+
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+                return StatusCode(403, "Not authorized");
+
+            var success = await _vaultService.UpdateVaultAsync(id, request, currentUser.Identifier);
+
+            if (!success)
+                return NotFound();
+
+            return NoContent();
+        }
 
         [HttpGet("{id}/logs")]
         public async Task<IActionResult> GetVaultLogs(Guid id)

@@ -13,7 +13,7 @@
     gap: 8px;
 }
 
-.btnShare, .btnDelete, .btnHistory {
+.btnShare, .btnDelete, .btnHistory, .btnUpdate {
     padding: 12px 20px;
     border-radius: var(--radius-md);
     font-size: 14px;
