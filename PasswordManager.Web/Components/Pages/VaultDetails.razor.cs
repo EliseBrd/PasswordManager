@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using PasswordManager.Dto.Vault.Requests;
 using PasswordManager.Dto.Vault.Responses;
@@ -15,6 +16,7 @@ namespace PasswordManager.Web.Components.Pages
         [Inject] protected VaultEntryService VaultEntryService { get; set; } = default!;
         [Inject] protected IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] protected ILogger<VaultDetails> Logger { get; set; } = default!;
+        [Inject] protected AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
         [Parameter]
         public string VaultId { get; set; } = ""; // Changed to string to avoid casting error
@@ -31,6 +33,7 @@ namespace PasswordManager.Web.Components.Pages
         protected List<VaultEntryViewModel> decryptedEntries = new();
         
         protected bool showShareModal = false;
+        protected bool showHistoryModal = false; // Pour l'historique
         protected VaultEntryViewModel newEntry = new();
         
         private bool showCreateModal;
@@ -74,7 +77,17 @@ namespace PasswordManager.Web.Components.Pages
         
         private async Task ConfirmDeleteEntry()
         {
-            await DeleteEntry(entryToDelete);
+            // Récupération de l'email pour le log
+            var userEmail = await GetCurrentUserEmail();
+            
+            // Génération du log chiffré
+            var encryptedLog = await JSRuntime.InvokeAsync<string>(
+                "cryptoFunctions.encryptDeleteLog",
+                entryToDelete.ToString(),
+                userEmail
+            );
+            
+            await DeleteEntry(entryToDelete, encryptedLog);
             showDeleteModal = false;
         }
         
@@ -223,6 +236,16 @@ namespace PasswordManager.Web.Components.Pages
             showCreateModal = false;
         }
 
+        private async Task<string> GetCurrentUserEmail()
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            return user.FindFirst("preferred_username")?.Value 
+                   ?? user.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value 
+                   ?? user.Identity?.Name 
+                   ?? "Unknown";
+        }
+
         private async Task SaveEntry()
         {
             // Tout est récupéré et chiffré côté JS
@@ -236,15 +259,26 @@ namespace PasswordManager.Web.Components.Pages
                 "cryptoFunctions.encryptInputValue",
                 "vaultEntryPasswordInput"
             );
+            
+            // Récupération de l'email pour le log
+            var userEmail = await GetCurrentUserEmail();
 
             if (newEntry.Identifier == Guid.Empty)
             {
                 // ===== CREATE =====
+                // Génération du log chiffré
+                var encryptedLog = await JSRuntime.InvokeAsync<string>(
+                    "cryptoFunctions.encryptCreateLog",
+                    "vaultEntryTitleInput",
+                    userEmail
+                );
+
                 var request = new CreateVaultEntryRequest
                 {
                     VaultIdentifier = VaultGuid,
                     EncryptedData = encryptedData,
-                    EncryptedPassword = encryptedPassword
+                    EncryptedPassword = encryptedPassword,
+                    EncryptedLog = encryptedLog
                 };
 
                 var createdId = await VaultEntryService.CreateEntryAsync(request);
@@ -258,13 +292,24 @@ namespace PasswordManager.Web.Components.Pages
             else
             {
                 // ===== UPDATE =====
+                // Génération du log chiffré avec comparaison
+                var encryptedLog = await JSRuntime.InvokeAsync<string>(
+                    "cryptoFunctions.encryptUpdateLog",
+                    entryBeingEdited.EncryptedData, // Ancienne donnée chiffrée
+                    "vaultEntryTitleInput",
+                    "vaultEntryUsernameInput",
+                    "vaultEntryPasswordInput",
+                    userEmail
+                );
+
                 var request = new UpdateVaultEntryRequest
                 {
                     EntryIdentifier = newEntry.Identifier,
                     EncryptedData = encryptedData,
                     EncryptedPassword = string.IsNullOrWhiteSpace(encryptedPassword)
                         ? null
-                        : encryptedPassword
+                        : encryptedPassword,
+                    EncryptedLog = encryptedLog
                 };
 
                 await VaultEntryService.UpdateVaultEntryAsync(request);
@@ -279,9 +324,9 @@ namespace PasswordManager.Web.Components.Pages
 
         // ShowPassword supprimé car géré par le composant VaultEntry
 
-        private async Task DeleteEntry(Guid entryId)
+        private async Task DeleteEntry(Guid entryId, string encryptedLog)
         {
-            await VaultEntryService.DeleteVaultEntryAsync(entryId);
+            await VaultEntryService.DeleteVaultEntryAsync(entryId, encryptedLog);
 
             decryptedEntries.RemoveAll(e => e.Identifier == entryId);
 
@@ -291,6 +336,11 @@ namespace PasswordManager.Web.Components.Pages
         protected void ToggleShare()
         {
             showShareModal = !showShareModal;
+        }
+        
+        protected void ToggleHistory()
+        {
+            showHistoryModal = !showHistoryModal;
         }
 
         protected void OnSharingChanged(bool isShared)

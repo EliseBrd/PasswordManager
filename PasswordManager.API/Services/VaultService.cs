@@ -288,6 +288,31 @@ namespace PasswordManager.API.Services
             return true;
         }
 
+        public async Task<IEnumerable<VaultLogResponse>> GetLogsAsync(Guid vaultId, Guid requestingUserId)
+        {
+            var vault = await _repository.GetByIdWithSharedUsersAsync(vaultId);
+            if (vault == null)
+            {
+                return new List<VaultLogResponse>();
+            }
+
+            // Check if requester is admin
+            var requesterAccess = vault.UserAccesses.FirstOrDefault(ua => ua.UserIdentifier == requestingUserId);
+            if (requesterAccess == null || !requesterAccess.IsAdmin)
+            {
+                _logger.LogWarning("GetLogs failed: User {UserId} is not admin of Vault {VaultId}", requestingUserId, vaultId);
+                return new List<VaultLogResponse>();
+            }
+
+            var logs = await _repository.GetLogsAsync(vaultId);
+            return logs.Select(l => new VaultLogResponse
+            {
+                Identifier = l.Identifier,
+                Date = l.Date,
+                EncryptedData = l.EncryptedData
+            });
+        }
+
         private byte[] DeriveKeyFromPassword(string password, byte[] salt)
         {
             using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Pbkdf2Iterations, HashAlgorithmName.SHA256);

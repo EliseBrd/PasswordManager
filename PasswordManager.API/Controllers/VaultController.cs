@@ -141,12 +141,17 @@ namespace PasswordManager.API.Controllers
                 return NotFound();
             }
 
+            // Vérifier si l'utilisateur courant est admin
+            var userAccess = vault.UserAccesses.FirstOrDefault(ua => ua.UserIdentifier == currentUser.Identifier);
+            var isAdmin = userAccess?.IsAdmin ?? false;
+
             var response = new VaultDetailsResponse
             {
                 Identifier = vault.Identifier,
                 Name = vault.Name,
                 CreatorIdentifier = vault.CreatorIdentifier,
                 IsCreator = vault.CreatorIdentifier == currentUser.Identifier,
+                IsAdmin = isAdmin, // Remplissage de la nouvelle propriété
                 IsShared = vault.IsShared,
                 SharedWith = vault.UserAccesses
                     .Where(ua => ua.UserIdentifier != currentUser.Identifier) // Optionally exclude current user from list
@@ -309,6 +314,25 @@ namespace PasswordManager.API.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpGet("{id}/logs")]
+        public async Task<IActionResult> GetVaultLogs(Guid id)
+        {
+            var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
+            if (currentUser == null)
+            {
+                return Unauthorized("User not found or session is invalid.");
+            }
+
+            // Seuls les admins peuvent voir les logs
+            if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
+            {
+                return StatusCode(403, "You are not authorized to view logs for this vault.");
+            }
+
+            var logs = await _vaultService.GetLogsAsync(id, currentUser.Identifier);
+            return Ok(logs);
         }
     }
 }

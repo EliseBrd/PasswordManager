@@ -14,5 +14,6 @@ namespace PasswordManager.API.Repositories.Interfaces
         Task AddUserAccessAsync(VaultUserAccess access);
         Task RemoveUserAccessAsync(Guid vaultId, Guid userId);
         Task UpdateUserAccessAsync(VaultUserAccess access);
+        Task<IEnumerable<VaultLog>> GetLogsAsync(Guid vaultId);
     }
 }

@@ -2,6 +2,7 @@
 
 using PasswordManager.API.Services.Interfaces;
 using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Dto.VaultEntries.Requests;
 using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.API.Controllers
@@ -53,7 +54,8 @@ namespace PasswordManager.API.Controllers
             var success = await _vaultEntryService.UpdateEntryAsync(
                 request.EntryIdentifier,
                 request.EncryptedData,
-                request.EncryptedPassword);
+                request.EncryptedPassword,
+                request.EncryptedLog); // Passage du log chiffré
 
             if (!success)
                 return NotFound();
@@ -62,8 +64,11 @@ namespace PasswordManager.API.Controllers
         }
 
         // DELETE /api/vaultentries/{id} : Supprimer une entrée dans un coffre
+        // Note: Utilisation de [FromBody] pour passer le log chiffré. 
+        // Certains clients HTTP ou proxies peuvent bloquer les body sur DELETE.
+        // Si problème, passer en POST /delete ou utiliser un header.
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEntry(Guid id)
+        public async Task<IActionResult> DeleteEntry(Guid id, [FromBody] DeleteVaultEntryRequest request)
         {
             var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
             if (currentUser == null) return Unauthorized("User not found or session is invalid.");
@@ -74,9 +79,15 @@ namespace PasswordManager.API.Controllers
                 return StatusCode(403, "You are not authorized to delete this entry.");
             }
 
+            // Sécurité : on s'assure que l'ID de l'URL correspond à l'ID du body
+            if (id != request.EntryIdentifier)
+            {
+                return BadRequest("ID mismatch");
+            }
+
             try
             {
-                var success = await _vaultEntryService.DeleteEntryAsync(id);
+                var success = await _vaultEntryService.DeleteEntryAsync(request);
                 if (!success)
                     return NotFound();
 
@@ -89,11 +100,10 @@ namespace PasswordManager.API.Controllers
             }
         }
         
-        // GET /api/vaultEntry/{id}/password : Récupérer le mot de passe d'une entrée dans un coffre
-        [HttpGet("{id}/password")]
-        public async Task<IActionResult> GetVaultEntryPassword(Guid id)
+        // POST /api/vaultEntry/{id}/password/access : Récupérer le mot de passe d'une entrée avec log d'audit
+        [HttpPost("{id}/password/access")]
+        public async Task<IActionResult> AccessVaultEntryPassword(Guid id, [FromBody] GetVaultEntryPasswordRequest request)
         {
-            
             var currentUser = HttpContext.Items["CurrentUser"] as AppUser;
             if (currentUser == null) 
             {
@@ -105,14 +115,19 @@ namespace PasswordManager.API.Controllers
             {
                 return StatusCode(403, "You do not have access to this entry.");
             }
+            
+            // Sécurité : on s'assure que l'ID de l'URL correspond à l'ID du body
+            if (id != request.EntryIdentifier)
+            {
+                return BadRequest("ID mismatch");
+            }
 
-            var encryptedPassword = await _vaultEntryService.GetEntryPasswordAsync(id);
+            var encryptedPassword = await _vaultEntryService.GetEntryPasswordAsync(request);
             if (encryptedPassword == null) 
             {
                 return NotFound();
             }
             
-            Console.WriteLine("[API DEBUG] Password found and returned");
             return Ok(new { encryptedPassword });
         }
     }

@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
+using PasswordManager.Dto.VaultEntries.Requests;
 using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.Web.Services;
@@ -32,15 +33,25 @@ public class VaultEntryService
             };
         }
         
-        public async Task<string?> GetEntryPasswordAsync(Guid identifier)
+        public async Task<string?> GetEntryPasswordAsync(Guid identifier, string encryptedLog)
         {
             var client = await CreateHttpClientAsync();
 
-            var response = await client.GetFromJsonAsync<JsonElement>(
-                $"{_apiBaseUrl}/api/VaultEntry/{identifier}/password",
+            var request = new GetVaultEntryPasswordRequest
+            {
+                EntryIdentifier = identifier,
+                EncryptedLog = encryptedLog
+            };
+
+            var response = await client.PostAsJsonAsync(
+                $"{_apiBaseUrl}/api/VaultEntry/{identifier}/password/access",
+                request,
                 _jsonOptions);
 
-            return response.TryGetProperty("encryptedPassword", out var prop)
+            if (!response.IsSuccessStatusCode) return null;
+
+            var content = await response.Content.ReadFromJsonAsync<JsonElement>(_jsonOptions);
+            return content.TryGetProperty("encryptedPassword", out var prop)
                 ? prop.GetString()
                 : null;
         }
@@ -71,11 +82,21 @@ public class VaultEntryService
         }
 
         
-        public async Task DeleteVaultEntryAsync(Guid identifier)
+        public async Task DeleteVaultEntryAsync(Guid identifier, string encryptedLog)
         {
             var client = await CreateHttpClientAsync();
-            var response = await client.DeleteAsync(
-                $"{_apiBaseUrl}/api/VaultEntry/{identifier}");
+            
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{_apiBaseUrl}/api/VaultEntry/{identifier}");
+            
+            var deleteRequest = new DeleteVaultEntryRequest
+            {
+                EntryIdentifier = identifier,
+                EncryptedLog = encryptedLog
+            };
+            
+            request.Content = JsonContent.Create(deleteRequest, options: _jsonOptions);
+            
+            var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
         

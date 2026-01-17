@@ -1,5 +1,6 @@
 ﻿using PasswordManager.API.Objects;
 using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Dto.VaultEntries.Requests;
 using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.API.Services.Interfaces
@@ -8,9 +9,9 @@ namespace PasswordManager.API.Services.Interfaces
     // Il encapsule la logique et les règles d'application
     public interface IVaultEntryService
     {
-        Task<bool> UpdateEntryAsync(Guid entryId, string encryptedData, string? encryptedPassword);
-        Task<bool> DeleteEntryAsync(Guid id);
+        Task<bool> UpdateEntryAsync(Guid entryId, string encryptedData, string? encryptedPassword, string? encryptedLog = null);
+        Task<bool> DeleteEntryAsync(DeleteVaultEntryRequest request);
         Task<VaultEntry> CreateEntryAsync(CreateVaultEntryRequest request, Guid creatorId);
-        Task<string?> GetEntryPasswordAsync(Guid entryId);
+        Task<string?> GetEntryPasswordAsync(GetVaultEntryPasswordRequest request);
     }
 }

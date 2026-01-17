@@ -29,9 +29,15 @@ else
     </button>
     <div class="vaultDetailsHeader">
         <h1 class="titleHome"><i class="fa-solid fa-unlock"></i> @vault.Name</h1>
-        @if (vault.IsCreator)
-         {
-             <div class="vaultActions">
+        
+        <div class="vaultActions">
+            @if (vault.IsAdmin)
+            {
+                 <button class="btnHistory btn-info" @onclick="ToggleHistory">
+                     <i class="fa-solid fa-clock-rotate-left"></i>
+                     Historique
+                 </button>
+
                  <button class="btnShare @(vault.IsShared ? "btn-success" : "btn-secondary")" @onclick="ToggleShare">
                      <i class="fa-solid fa-share-from-square"></i>
                      @(vault.IsShared ? "Partagé" : "Partager")
@@ -48,8 +54,8 @@ else
                      <i class="fa-solid fa-trash"></i>
                      Supprimer
                  </button>
-             </div>
-        } 
+            }
+        </div>
     </div>
     
     
@@ -66,6 +72,11 @@ else
                       OnSharingChanged="@OnSharingChanged"
                       OnClose="ToggleShare" />
     }
+    
+    <ModalVaultHistory 
+        IsOpen="showHistoryModal" 
+        VaultId="@VaultGuid" 
+        OnClose="ToggleHistory" />
 
     <div class="vaultEntries">
         @foreach (var entry in decryptedEntries)
