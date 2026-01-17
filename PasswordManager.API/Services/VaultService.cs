@@ -116,12 +116,10 @@ namespace PasswordManager.API.Services
                 _logger.LogWarning("Update failed: User {UserId} not creator", userId);
                 return false;
             }
-
-            // Nom
+            
             vault.Name = request.Name;
             vault.LastUpdatedAt = DateTime.UtcNow;
-
-            // Mot de passe changé ?
+            
             if (!string.IsNullOrWhiteSpace(request.NewPassword))
             {
                 if (string.IsNullOrWhiteSpace(request.MasterSalt) ||

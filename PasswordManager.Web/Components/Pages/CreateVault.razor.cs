@@ -12,20 +12,9 @@ namespace PasswordManager.Web.Components.Pages
         [Inject] private IJSRuntime Js { get; set; } = default!;
         [Inject] private VaultService VaultService { get; set; } = default!;
         [Inject] private NavigationManager NavManager { get; set; } = default!;
-
-        // =========================
-        // STATE
-        // =========================
+        
         private string _vaultName = "";
         private string _vaultPassword = "";
-
-        // =========================
-        // INPUT LIVE
-        // =========================
-        /*protected void OnPasswordInput(ChangeEventArgs e)
-        {
-            _vaultPassword = e.Value?.ToString() ?? "";
-        }*/
         
         protected void OnPasswordInput(ChangeEventArgs e)
         {
@@ -36,10 +25,7 @@ namespace PasswordManager.Web.Components.Pages
         {
             _vaultPassword = pwd;
         }
-
-        // =========================
-        // CRÉATION DU COFFRE
-        // =========================
+        
         private async Task EventCreateVault()
         {
             if (!string.IsNullOrWhiteSpace(_vaultName) && !string.IsNullOrWhiteSpace(_vaultPassword))
