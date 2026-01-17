@@ -84,6 +84,26 @@ namespace PasswordManager.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VaultLogs",
+                columns: table => new
+                {
+                    Identifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    VaultIdentifier = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EncryptedData = table.Column<string>(type: "TEXT", maxLength: 4096, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VaultLogs", x => x.Identifier);
+                    table.ForeignKey(
+                        name: "FK_VaultLogs_Vaults_VaultIdentifier",
+                        column: x => x.VaultIdentifier,
+                        principalTable: "Vaults",
+                        principalColumn: "Identifier",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "VaultUserAccesses",
                 columns: table => new
                 {
@@ -124,6 +144,11 @@ namespace PasswordManager.API.Migrations
                 column: "VaultIdentifier");
 
             migrationBuilder.CreateIndex(
+                name: "IX_VaultLogs_VaultIdentifier",
+                table: "VaultLogs",
+                column: "VaultIdentifier");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Vaults_CreatorIdentifier",
                 table: "Vaults",
                 column: "CreatorIdentifier");
@@ -139,6 +164,9 @@ namespace PasswordManager.API.Migrations
         {
             migrationBuilder.DropTable(
                 name: "VaultEntries");
+
+            migrationBuilder.DropTable(
+                name: "VaultLogs");
 
             migrationBuilder.DropTable(
                 name: "VaultUserAccesses");

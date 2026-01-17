@@ -11,7 +11,7 @@ using PasswordManager.API.Context;
 namespace PasswordManager.API.Migrations
 {
     [DbContext(typeof(PasswordManagerDBContext))]
-    [Migration("20260111152127_InitialCreate")]
+    [Migration("20260117202852_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -94,6 +94,30 @@ namespace PasswordManager.API.Migrations
                     b.HasIndex("CreatorIdentifier");
 
                     b.ToTable("Vaults");
+                });
+
+            modelBuilder.Entity("PasswordManager.API.Objects.VaultLog", b =>
+                {
+                    b.Property<Guid>("Identifier")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EncryptedData")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("VaultIdentifier")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Identifier");
+
+                    b.HasIndex("VaultIdentifier");
+
+                    b.ToTable("VaultLogs");
                 });
 
             modelBuilder.Entity("PasswordManager.API.Objects.VaultUserAccess", b =>
@@ -182,6 +206,17 @@ namespace PasswordManager.API.Migrations
                     b.Navigation("Creator");
                 });
 
+            modelBuilder.Entity("PasswordManager.API.Objects.VaultLog", b =>
+                {
+                    b.HasOne("PasswordManager.API.Objects.Vault", "Vault")
+                        .WithMany("Logs")
+                        .HasForeignKey("VaultIdentifier")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vault");
+                });
+
             modelBuilder.Entity("PasswordManager.API.Objects.VaultUserAccess", b =>
                 {
                     b.HasOne("PasswordManager.API.AppUser", "User")
@@ -232,6 +267,8 @@ namespace PasswordManager.API.Migrations
             modelBuilder.Entity("PasswordManager.API.Objects.Vault", b =>
                 {
                     b.Navigation("Entries");
+
+                    b.Navigation("Logs");
 
                     b.Navigation("UserAccesses");
                 });

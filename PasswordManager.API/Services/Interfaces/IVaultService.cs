@@ -18,5 +18,6 @@ namespace PasswordManager.API.Services.Interfaces
         Task<bool> RemoveUserFromVaultAsync(Guid vaultId, Guid userIdToRemove, Guid requestingUserId);
         Task<bool> UpdateUserAccessAsync(Guid vaultId, Guid userIdToUpdate, bool isAdmin, Guid requestingUserId);
         Task<bool> DeleteVaultAsync(Guid vaultId);
+        Task<IEnumerable<VaultLogResponse>> GetLogsAsync(Guid vaultId, Guid requestingUserId);
     }
 }

@@ -1,0 +1,38 @@
+﻿@using PasswordManager.Dto.Vault.Responses
+
+@if (IsOpen)
+{
+    <div class="modal-backdrop show" style="display: block; background-color: rgba(0,0,0,0.5);"></div>
+    <div class="modal show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i>
+                        Historique du coffre
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="OnClose"></button>
+                </div>
+                <div class="modal-body">
+                    
+                    @if (isLoading)
+                    {
+                        <div class="loading-state">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Chargement...</span>
+                            </div>
+                            <p class="mt-2">Récupération et déchiffrement des logs...</p>
+                        </div>
+                    }
+                    
+                    <!-- Zero-Knowledge : Le contenu est généré par JS -->
+                    <div id="logsContainer"></div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="OnClose">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

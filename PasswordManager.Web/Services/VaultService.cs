@@ -146,5 +146,13 @@ namespace PasswordManager.Web.Services
             var response = await client.PutAsJsonAsync($"{_apiBaseUrl}/api/vault/{vaultId}/users/{userId}", request, _jsonOptions);
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<IEnumerable<VaultLogResponse>> GetVaultLogsAsync(Guid vaultId)
+        {
+            var client = await CreateHttpClientAsync();
+            var response = await client.GetAsync($"{_apiBaseUrl}/api/vault/{vaultId}/logs");
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<IEnumerable<VaultLogResponse>>(_jsonOptions) ?? new List<VaultLogResponse>();
+        }
     }
 }

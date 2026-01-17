@@ -10,6 +10,7 @@ namespace PasswordManager.Dto.Vault.Responses
         public string Name { get; set; } = string.Empty;
         public Guid CreatorIdentifier { get; set; }
         public bool IsCreator { get; set; }
+        public bool IsAdmin { get; set; } // Nouveau champ
         public bool IsShared { get; set; }
         public List<VaultUserResponse> SharedWith { get; set; } = new();
     }

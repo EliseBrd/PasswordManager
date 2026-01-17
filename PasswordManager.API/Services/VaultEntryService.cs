@@ -5,6 +5,7 @@ using PasswordManager.API.Context;
 using PasswordManager.API.Objects;
 using PasswordManager.API.Services.Interfaces;
 using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Dto.VaultEntries.Requests;
 using PasswordManager.Dto.VaultsEntries.Requests;
 
 namespace PasswordManager.API.Services;
@@ -57,19 +58,45 @@ public class VaultEntryService : IVaultEntryService
         };
 
         _context.VaultEntries.Add(entry);
+
+        // Ajout du log si présent
+        if (!string.IsNullOrEmpty(request.EncryptedLog))
+        {
+            var log = new VaultLog
+            {
+                VaultIdentifier = request.VaultIdentifier,
+                EncryptedData = request.EncryptedLog,
+                Date = DateTime.UtcNow
+            };
+            _context.VaultLogs.Add(log);
+        }
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Vault entry {EntryId} created successfully in Vault {VaultId}", entry.Identifier, request.VaultIdentifier);
         return entry;
     }
     
-    public async Task<string?> GetEntryPasswordAsync(Guid entryId)
+    public async Task<string?> GetEntryPasswordAsync(GetVaultEntryPasswordRequest request)
     {
-        var entry = await _context.VaultEntries.FindAsync(entryId);
+        var entry = await _context.VaultEntries.FindAsync(request.EntryIdentifier);
         if (entry == null)
         {
-            _logger.LogWarning("GetEntryPassword failed: Entry {EntryId} not found", entryId);
+            _logger.LogWarning("GetEntryPassword failed: Entry {EntryId} not found", request.EntryIdentifier);
             return null;
+        }
+
+        // Ajout du log si présent
+        if (!string.IsNullOrEmpty(request.EncryptedLog))
+        {
+            var log = new VaultLog
+            {
+                VaultIdentifier = entry.VaultIdentifier,
+                EncryptedData = request.EncryptedLog,
+                Date = DateTime.UtcNow
+            };
+            _context.VaultLogs.Add(log);
+            await _context.SaveChangesAsync();
         }
 
         var ivBytes = Convert.FromBase64String(entry.IVPassword);
@@ -81,29 +108,59 @@ public class VaultEntryService : IVaultEntryService
         Buffer.BlockCopy(cypherBytes, 0, combinedBytes, ivBytes.Length, cypherBytes.Length);
         Buffer.BlockCopy(tagBytes, 0, combinedBytes, ivBytes.Length + cypherBytes.Length, tagBytes.Length);
 
-        _logger.LogInformation("Password retrieved for entry {EntryId}", entryId);
+        _logger.LogInformation("Password retrieved for entry {EntryId}", request.EntryIdentifier);
         return Convert.ToBase64String(combinedBytes);
     }
-
-    public async Task<bool> DeleteEntryAsync(Guid id)
+    
+    // Surcharge pour compatibilité si nécessaire (mais on va essayer de tout migrer)
+    public async Task<string?> GetEntryPasswordAsync(Guid entryId)
     {
-        var entry = await _context.VaultEntries.FindAsync(id);
+        return await GetEntryPasswordAsync(new GetVaultEntryPasswordRequest { EntryIdentifier = entryId });
+    }
+
+    public async Task<bool> DeleteEntryAsync(DeleteVaultEntryRequest request)
+    {
+        var entry = await _context.VaultEntries.FindAsync(request.EntryIdentifier);
         if (entry == null)
         {
-            _logger.LogWarning("DeleteEntry failed: Entry {EntryId} not found", id);
+            _logger.LogWarning("DeleteEntry failed: Entry {EntryId} not found", request.EntryIdentifier);
             return false;
         }
+        
+        // On récupère le VaultIdentifier avant de supprimer l'entrée pour pouvoir lier le log
+        var vaultId = entry.VaultIdentifier;
+        
         _context.VaultEntries.Remove(entry);
+        
+        // Ajout du log si présent
+        if (!string.IsNullOrEmpty(request.EncryptedLog))
+        {
+            var log = new VaultLog
+            {
+                VaultIdentifier = vaultId,
+                EncryptedData = request.EncryptedLog,
+                Date = DateTime.UtcNow
+            };
+            _context.VaultLogs.Add(log);
+        }
+        
         await _context.SaveChangesAsync();
         
-        _logger.LogInformation("Vault entry {EntryId} deleted", id);
+        _logger.LogInformation("Vault entry {EntryId} deleted", request.EntryIdentifier);
         return true;
+    }
+    
+    // Surcharge pour compatibilité si nécessaire, ou à supprimer si on migre tout
+    public async Task<bool> DeleteEntryAsync(Guid id)
+    {
+        return await DeleteEntryAsync(new DeleteVaultEntryRequest { EntryIdentifier = id });
     }
     
     public async Task<bool> UpdateEntryAsync(
         Guid entryId,
         string encryptedData,
-        string? encryptedPassword)
+        string? encryptedPassword,
+        string? encryptedLog = null) // Ajout du paramètre optionnel pour le log
     {
         var entry = await _context.VaultEntries
             .FirstOrDefaultAsync(e => e.Identifier == entryId);
@@ -147,8 +204,20 @@ public class VaultEntryService : IVaultEntryService
 
         entry.LastUpdatedAt = DateTime.UtcNow;
 
+        // Ajout du log si présent
+        if (!string.IsNullOrEmpty(encryptedLog))
+        {
+            var log = new VaultLog
+            {
+                VaultIdentifier = entry.VaultIdentifier,
+                EncryptedData = encryptedLog,
+                Date = DateTime.UtcNow
+            };
+            _context.VaultLogs.Add(log);
+        }
+
         await _context.SaveChangesAsync();
-        _logger.LogInformation("UpdateEntry called for {EntryId} (Not implemented)", entry.Identifier);
+        _logger.LogInformation("UpdateEntry called for {EntryId}", entry.Identifier);
         return true;
     }
 }

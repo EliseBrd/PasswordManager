@@ -271,6 +271,200 @@
         }
     },
 
+    // --- FONCTIONS POUR LES LOGS ---
+
+    // Crée un log chiffré
+    encryptLog: async function (actionType, description, userEmail) {
+        const logData = {
+            Type: actionType,
+            Text: description,
+            User: userEmail
+        };
+        
+        const jsonData = JSON.stringify(logData);
+        return await this.encryptData(jsonData);
+    },
+    
+    // Crée un log de CRÉATION avec le titre de l'entrée
+    encryptCreateLog: async function (titleInputId, userEmail) {
+        const title = document.getElementById(titleInputId)?.value || "Nouvelle entrée";
+        const description = `Création de l'entrée '${title}'`;
+        return await this.encryptLog("CreateEntry", description, userEmail);
+    },
+    
+    // Crée un log de SUPPRESSION avec le titre de l'entrée (récupéré du DOM)
+    encryptDeleteLog: async function (entryId, userEmail) {
+        const titleEl = document.getElementById(`title-${entryId}`);
+        const title = titleEl ? titleEl.innerText : "Entrée inconnue";
+        const description = `Suppression de l'entrée '${title}'`;
+        return await this.encryptLog("DeleteEntry", description, userEmail);
+    },
+    
+    // Crée un log de CONSULTATION DE MOT DE PASSE avec le titre de l'entrée
+    encryptShowPasswordLog: async function (entryId, userEmail) {
+        const titleEl = document.getElementById(`title-${entryId}`);
+        const title = titleEl ? titleEl.innerText : "Entrée inconnue";
+        const description = `Consultation du mot de passe de '${title}'`;
+        return await this.encryptLog("ShowPassword", description, userEmail);
+    },
+    
+    // Crée un log de mise à jour en comparant les anciennes et nouvelles valeurs
+    encryptUpdateLog: async function (oldEncryptedData, titleInputId, usernameInputId, passwordInputId, userEmail) {
+        let description = "Modification d'une entrée";
+        
+        try {
+            // 1. Déchiffrer l'ancienne valeur
+            const oldJsonString = await this.decryptData(oldEncryptedData);
+            const oldData = JSON.parse(oldJsonString);
+            const entryTitle = oldData.Title || "Entrée";
+            
+            // 2. Lire les nouvelles valeurs
+            const newTitle = document.getElementById(titleInputId)?.value || "";
+            const newUsername = document.getElementById(usernameInputId)?.value || "";
+            const newPassword = document.getElementById(passwordInputId)?.value || "";
+            
+            // 3. Comparer
+            const changes = [];
+            
+            if (oldData.Title !== newTitle) {
+                changes.push(`Titre modifié ('${oldData.Title}' -> '${newTitle}')`);
+            }
+            
+            if (oldData.Username !== newUsername) {
+                changes.push(`Nom d'utilisateur modifié ('${oldData.Username}' -> '${newUsername}')`);
+            }
+            
+            if (newPassword && newPassword.length > 0) {
+                changes.push("Mot de passe modifié");
+            }
+            
+            if (changes.length > 0) {
+                description = `Modification de '${entryTitle}' : ${changes.join(", ")}`;
+            } else {
+                description = `Modification de '${entryTitle}' (aucune donnée changée)`;
+            }
+            
+        } catch (e) {
+            console.error("Erreur lors de la comparaison pour le log:", e);
+            description = "Modification d'une entrée (détails indisponibles)";
+        }
+        
+        // 4. Chiffrer le log
+        return await this.encryptLog("UpdateEntry", description, userEmail);
+    },
+
+    // Déchiffre une liste de logs et génère le HTML directement dans le conteneur
+    // Zero-Knowledge : Le serveur ne reçoit jamais les logs en clair
+    renderDecryptedLogs: async function (encryptedLogs, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = ""; // Vider le conteneur
+        
+        if (!encryptedLogs || encryptedLogs.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="fa-regular fa-folder-open fa-2x mb-2"></i>
+                    <p>Aucun historique disponible.</p>
+                </div>`;
+            return;
+        }
+
+        // Création de la table
+        const table = document.createElement("table");
+        table.className = "table table-hover align-middle";
+        
+        const thead = document.createElement("thead");
+        thead.className = "table-light";
+        thead.innerHTML = `
+            <tr>
+                <th scope="col" style="width: 180px;">Date</th>
+                <th scope="col" style="width: 120px;">Action</th>
+                <th scope="col">Détails</th>
+                <th scope="col">Utilisateur</th>
+            </tr>`;
+        table.appendChild(thead);
+        
+        const tbody = document.createElement("tbody");
+        
+        for (const log of encryptedLogs) {
+            const tr = document.createElement("tr");
+            
+            // Date (en clair)
+            const dateCell = document.createElement("td");
+            dateCell.className = "text-muted small";
+            dateCell.innerText = new Date(log.date).toLocaleString();
+            tr.appendChild(dateCell);
+            
+            // Déchiffrement
+            let type = "Unknown";
+            let text = "Erreur de déchiffrement";
+            let user = "Unknown";
+            
+            try {
+                const jsonString = await this.decryptData(log.encryptedData);
+                const data = JSON.parse(jsonString);
+                type = data.Type || "Unknown";
+                text = data.Text || "";
+                user = data.User || "";
+            } catch (e) {
+                console.error("Erreur déchiffrement log:", e);
+            }
+            
+            // Action (Badge)
+            const actionCell = document.createElement("td");
+            const badge = document.createElement("span");
+            badge.className = "badge " + this.getBadgeClass(type);
+            badge.innerText = this.getActionLabel(type);
+            actionCell.appendChild(badge);
+            tr.appendChild(actionCell);
+            
+            // Détails
+            const textCell = document.createElement("td");
+            textCell.innerText = text;
+            tr.appendChild(textCell);
+            
+            // Utilisateur
+            const userCell = document.createElement("td");
+            userCell.className = "small text-muted";
+            userCell.innerHTML = `<i class="fa-solid fa-user me-1"></i> ${user}`;
+            tr.appendChild(userCell);
+            
+            tbody.appendChild(tr);
+        }
+        
+        table.appendChild(tbody);
+        
+        // Wrapper responsive
+        const wrapper = document.createElement("div");
+        wrapper.className = "table-responsive";
+        wrapper.appendChild(table);
+        
+        container.appendChild(wrapper);
+    },
+    
+    getBadgeClass: function(type) {
+        switch(type) {
+            case "CreateEntry": return "bg-success";
+            case "UpdateEntry": return "bg-warning text-dark";
+            case "DeleteEntry": return "bg-danger";
+            case "ShowPassword": return "bg-primary"; // Nouveau type
+            case "UpdateVault": return "bg-info text-dark";
+            default: return "bg-secondary";
+        }
+    },
+    
+    getActionLabel: function(type) {
+        switch(type) {
+            case "CreateEntry": return "Création";
+            case "UpdateEntry": return "Modification";
+            case "DeleteEntry": return "Suppression";
+            case "ShowPassword": return "Consultation"; // Nouveau type
+            case "UpdateVault": return "Config Coffre";
+            default: return type;
+        }
+    },
+
     clearKey: function() {
         this.currentVaultKey = null;
     },

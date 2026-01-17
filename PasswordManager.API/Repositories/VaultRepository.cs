@@ -88,5 +88,13 @@ namespace PasswordManager.API.Repositories
             _context.VaultUserAccesses.Update(access);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<VaultLog>> GetLogsAsync(Guid vaultId)
+        {
+            return await _context.VaultLogs
+                .Where(l => l.VaultIdentifier == vaultId)
+                .OrderByDescending(l => l.Date)
+                .ToListAsync();
+        }
     }
 }

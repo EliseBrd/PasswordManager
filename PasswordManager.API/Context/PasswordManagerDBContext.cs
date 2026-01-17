@@ -10,6 +10,7 @@ public class PasswordManagerDBContext : DbContext
     public DbSet<Vault> Vaults { get; set; }
     public DbSet<VaultEntry> VaultEntries { get; set; }
     public DbSet<VaultUserAccess> VaultUserAccesses { get; set; }
+    public DbSet<VaultLog> VaultLogs { get; set; }
 
 
     public PasswordManagerDBContext(DbContextOptions<PasswordManagerDBContext> options) : base(options)
@@ -36,6 +37,7 @@ public class PasswordManagerDBContext : DbContext
         modelBuilder.ApplyConfiguration(new VaultConfiguration());
         modelBuilder.ApplyConfiguration(new VaultEntryConfiguration());
         modelBuilder.ApplyConfiguration(new VaultUserAccessConfiguration());
+        modelBuilder.ApplyConfiguration(new VaultLogConfiguration());
 
         // Ajouter un utilisateur factice pour les tests
         modelBuilder.Entity<AppUser>().HasData(
