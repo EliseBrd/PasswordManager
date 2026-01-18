@@ -25,6 +25,9 @@
             </ul>
         </div>
     </div>
+    
+    <!-- Commentaire sous le titre -->
+    <div class="vaultComment" id="@CommentId"></div>
 
     <div class="vaultField">
         <i class="fa-solid fa-user"></i>
@@ -43,7 +46,10 @@
     </div>
 
     <div class="vaultFooter">
-        <i class="@CategoryIcon"></i>
-        <span class="category">@Category</span>
+        <!-- Lien URL à la place de la catégorie -->
+        <button id="@UrlId" class="vaultUrlLink" onclick="window.cryptoFunctions.copyUrlToClipboard(this.id)">
+            <span class="urlText">Lien</span>
+            <i class="fa-regular fa-copy"></i>
+        </button>
     </div>
 </div>

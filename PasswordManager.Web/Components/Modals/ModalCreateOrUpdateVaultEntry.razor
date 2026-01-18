@@ -18,15 +18,22 @@
                         <div class="vaultEntryCreateForm">
 
                             <div class="sectionForm">
-                                <label for="vaultEntryTitle">Titre</label>
+                                <label for="vaultEntryTitleInput">Titre</label>
                                 <!-- Zero-Knowledge : Pas de @bind -->
                                 <input id="vaultEntryTitleInput" 
                                        type="text" 
                                        placeholder="Ex : Instagram" />
                             </div>
+                            
+                            <div class="sectionForm">
+                                <label for="vaultEntryCommentInput">Description</label>
+                                <input id="vaultEntryCommentInput" 
+                                       type="text" 
+                                       placeholder="Ex : Compte personnel" />
+                            </div>
 
                             <div class="sectionForm">
-                                <label for="vaultEntryUsername">Nom d'utilisateur/ E-mail</label>
+                                <label for="vaultEntryUsernameInput">Nom d'utilisateur/ E-mail</label>
                                 <!-- Zero-Knowledge : Pas de @bind -->
                                 <input id="vaultEntryUsernameInput" 
                                        type="text"
@@ -34,11 +41,18 @@
                             </div>
 
                             <div class="sectionForm">
-                                <label for="vaultEntryPassword">Mot de passe</label>
+                                <label for="vaultEntryPasswordInput">Mot de passe</label>
                                 <!-- Zero-Knowledge : Pas de @bind -->
                                 <input id="vaultEntryPasswordInput" 
                                        type="password"
                                        placeholder="Ex : BenjiLaFrappeDu53" />
+                            </div>
+                            
+                            <div class="sectionForm">
+                                <label for="vaultEntryUrlInput">URL</label>
+                                <input id="vaultEntryUrlInput" 
+                                       type="text"
+                                       placeholder="Ex : https://instagram.com" />
                             </div>
 
                             <button class="btn-primary" @onclick="OnConfirm">

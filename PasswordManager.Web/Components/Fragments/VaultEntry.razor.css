@@ -28,6 +28,15 @@
     font-weight: 400;
 }
 
+.vaultComment {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: -8px;
+    margin-bottom: 4px;
+    font-style: italic;
+    min-height: 1.2em; /* Pour éviter le saut si vide */
+}
+
 .vaultField {
     display: flex;
     align-items: center;
@@ -52,6 +61,50 @@
     gap: 10px;
     margin-top: 15px;
     color: #b7b7b7;
+}
+
+.vaultUrlLink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    
+    /* Design bouton gris clair arrondi */
+    background-color: #E6F1FE; /* Gris clair */
+    color: #096AFF; /* Texte gris foncé */
+    border: none;
+    border-radius: 9999px; /* Pill shape */
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    
+    max-width: 100%;
+    width: 100%; /* Prend toute la largeur dispo si besoin, ou ajuster selon préférence */
+    overflow: hidden;
+}
+
+.vaultUrlLink:hover {
+    background-color: #DAEBFF; /* Gris un peu plus foncé au survol */
+    color: #096AFF;
+}
+
+.vaultUrlLink .urlText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1; /* Prend l'espace dispo */
+    text-align: left;
+    color: #096AFF;
+}
+
+.vaultUrlLink i {
+    font-size: 0.9rem;
+    color: #E6F1FE;
+}
+
+.vaultUrlLink:hover i {
+    color: #DAEBFF;
 }
 
 /* DROPDOWN */
