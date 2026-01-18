@@ -11,6 +11,13 @@
         </div>
 
         <div class="vaultCreateform">
+            
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="alert alert-danger">
+                    @_errorMessage
+                </div>
+            }
 
             <div class="sectionForm">
                 <label for="vaultName">Nom du coffre</label>

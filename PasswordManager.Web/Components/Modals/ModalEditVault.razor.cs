@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using PasswordManager.Dto.Vault.Requests;
+using PasswordManager.Web.Components.Fragments;
 
 namespace PasswordManager.Web.Components.Modals;
 
@@ -40,6 +41,13 @@ public partial class ModalEditVault : ComponentBase
             if (NewPassword.Length < 8)
             {
                 ErrorMessage = "Le mot de passe doit faire au moins 8 caractères.";
+                return;
+            }
+
+            double entropy = PasswordTools.CalculateEntropy(NewPassword);
+            if (entropy < 40)
+            {
+                ErrorMessage = "Le mot de passe est trop faible (entropie insuffisante).";
                 return;
             }
         }
