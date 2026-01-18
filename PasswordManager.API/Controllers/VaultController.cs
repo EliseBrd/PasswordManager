@@ -7,6 +7,7 @@ using PasswordManager.Dto.Vault.Responses;
 using PasswordManager.Dto.User;
 using System;
 using System.Linq;
+using PasswordManager.API.Services;
 
 namespace PasswordManager.API.Controllers
 {
@@ -114,6 +115,17 @@ namespace PasswordManager.API.Controllers
             if (currentUser == null)
             {
                 return Unauthorized("User not found or session is invalid.");
+            }
+
+            if (request.Password.Length < 8)
+            {
+                return BadRequest("Password must be at least 8 characters long.");
+            }
+
+            double entropy = VaultService.CalculateEntropy(request.Password);
+            if (entropy < 40)
+            {
+                return BadRequest("Password is too weak (low entropy).");
             }
 
             var createdVault = await _vaultService.CreateVaultAsync(request, currentUser.Identifier);
@@ -307,6 +319,20 @@ namespace PasswordManager.API.Controllers
 
             if (!await _permissionService.CanManageVaultAsync(currentUser.Identifier, id))
                 return StatusCode(403, "Not authorized");
+
+            if (!string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                if (request.NewPassword.Length < 8)
+                {
+                    return BadRequest("Password must be at least 8 characters long.");
+                }
+
+                double entropy = VaultService.CalculateEntropy(request.NewPassword);
+                if (entropy < 40)
+                {
+                    return BadRequest("Password is too weak (low entropy).");
+                }
+            }
 
             var success = await _vaultService.UpdateVaultAsync(id, request, currentUser.Identifier);
 

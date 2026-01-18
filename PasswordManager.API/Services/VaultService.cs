@@ -332,5 +332,28 @@ namespace PasswordManager.API.Services
             Buffer.BlockCopy(tag, 0, result, nonce.Length + ciphertext.Length, tag.Length);
             return Convert.ToBase64String(result);
         }
+        
+        public static double CalculateEntropy(string pwd)
+        {
+            if (string.IsNullOrEmpty(pwd))
+                return 0;
+
+            int length = pwd.Length;
+            var frequencies = new Dictionary<char, int>();
+
+            foreach (char c in pwd)
+            {
+                frequencies[c] = frequencies.ContainsKey(c) ? frequencies[c] + 1 : 1;
+            }
+
+            double entropy = 0;
+            foreach (var kvp in frequencies)
+            {
+                double p = (double)kvp.Value / length;
+                entropy += -p * Math.Log2(p);
+            }
+
+            return entropy * length; // bits totaux
+        }
     }
 }

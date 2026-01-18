@@ -68,7 +68,7 @@ public partial class PasswordTools : ComponentBase
         _strengthLabel = GetStrengthLabel(_passwordEntropy);
     }
 
-    private double CalculateEntropy(string pwd)
+    public static double CalculateEntropy(string pwd)
     {
         if (string.IsNullOrEmpty(pwd))
             return 0;
