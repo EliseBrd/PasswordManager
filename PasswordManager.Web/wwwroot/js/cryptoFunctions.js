@@ -274,13 +274,17 @@
     },
 
     // Lit plusieurs inputs, construit un JSON, le chiffre et retourne le résultat chiffré
-    encryptEntryData: async function (titleId, usernameId) {
+    encryptEntryData: async function (titleId, usernameId, commentId, urlId) {
         const titleEl = document.getElementById(titleId);
         const usernameEl = document.getElementById(usernameId);
+        const commentEl = document.getElementById(commentId);
+        const urlEl = document.getElementById(urlId);
         
         const data = {
             Title: titleEl ? titleEl.value : "",
-            Username: usernameEl ? usernameEl.value : ""
+            Username: usernameEl ? usernameEl.value : "",
+            Comment: commentEl ? commentEl.value : "",
+            Url: urlEl ? urlEl.value : ""
         };
         
         const jsonData = JSON.stringify(data);
@@ -302,8 +306,8 @@
         }
     },
     
-    // Déchiffre une entrée complète et remplit les champs d'affichage (Titre, Username)
-    decryptAndFillEntry: async function (encryptedData, titleId, usernameId) {
+    // Déchiffre une entrée complète et remplit les champs d'affichage (Titre, Username, Comment, Url)
+    decryptAndFillEntry: async function (encryptedData, titleId, usernameId, commentId, urlId) {
         if (!encryptedData) return;
 
         try {
@@ -315,9 +319,46 @@
 
             const usernameEl = document.getElementById(usernameId);
             if (usernameEl) usernameEl.innerText = data.Username || "";
+            
+            const commentEl = document.getElementById(commentId);
+            if (commentEl) commentEl.innerText = data.Comment || "";
+            
+            const urlEl = document.getElementById(urlId);
+            if (urlEl) {
+                if (data.Url) {
+                    // On stocke l'URL dans un attribut data pour la copie
+                    urlEl.setAttribute("data-url", data.Url);
+                    urlEl.style.display = "flex";
+                    
+                    const urlText = urlEl.querySelector(".urlText");
+                    if (urlText) urlText.innerText = data.Url;
+                } else {
+                    urlEl.style.display = "none";
+                }
+            }
 
         } catch (e) {
             console.error("Erreur lors du déchiffrement de l'entrée:", e);
+        }
+    },
+    
+    // Copie l'URL stockée dans l'attribut data-url dans le presse-papier
+    copyUrlToClipboard: function(elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const url = element.getAttribute("data-url");
+        if (url) {
+            navigator.clipboard.writeText(url).then(() => {
+                // Feedback visuel optionnel (ex: changer l'icône temporairement)
+                const originalText = element.querySelector(".urlText").innerText;
+                element.querySelector(".urlText").innerText = "Copié !";
+                setTimeout(() => {
+                    element.querySelector(".urlText").innerText = originalText;
+                }, 1500);
+            }).catch(err => {
+                console.error('Erreur lors de la copie :', err);
+            });
         }
     },
     
@@ -374,7 +415,7 @@
     },
     
     // Crée un log de mise à jour en comparant les anciennes et nouvelles valeurs
-    encryptUpdateLog: async function (oldEncryptedData, titleInputId, usernameInputId, passwordInputId, userEmail) {
+    encryptUpdateLog: async function (oldEncryptedData, titleInputId, usernameInputId, passwordInputId, commentInputId, urlInputId, userEmail) {
         let description = "Modification d'une entrée";
         
         try {
@@ -387,6 +428,8 @@
             const newTitle = document.getElementById(titleInputId)?.value || "";
             const newUsername = document.getElementById(usernameInputId)?.value || "";
             const newPassword = document.getElementById(passwordInputId)?.value || "";
+            const newComment = document.getElementById(commentInputId)?.value || "";
+            const newUrl = document.getElementById(urlInputId)?.value || "";
             
             // 3. Comparer
             const changes = [];
@@ -397,6 +440,14 @@
             
             if (oldData.Username !== newUsername) {
                 changes.push(`Nom d'utilisateur modifié ('${oldData.Username}' -> '${newUsername}')`);
+            }
+            
+            if (oldData.Comment !== newComment) {
+                changes.push("Description modifiée");
+            }
+            
+            if (oldData.Url !== newUrl) {
+                changes.push("URL modifiée");
             }
             
             if (newPassword && newPassword.length > 0) {
@@ -555,7 +606,7 @@
     },
 
     // Déchiffre une entrée et remplit les inputs de la MODAL (édition)
-    decryptAndFillEditModal: async function (encryptedData, titleInputId, usernameInputId) {
+    decryptAndFillEditModal: async function (encryptedData, titleInputId, usernameInputId, commentInputId, urlInputId) {
         if (!encryptedData) return;
 
         try {
@@ -567,6 +618,12 @@
 
             const usernameInput = document.getElementById(usernameInputId);
             if (usernameInput) usernameInput.value = data.Username || "";
+            
+            const commentInput = document.getElementById(commentInputId);
+            if (commentInput) commentInput.value = data.Comment || "";
+            
+            const urlInput = document.getElementById(urlInputId);
+            if (urlInput) urlInput.value = data.Url || "";
 
         } catch (e) {
             console.error("Erreur lors du remplissage de la modal d'édition:", e);

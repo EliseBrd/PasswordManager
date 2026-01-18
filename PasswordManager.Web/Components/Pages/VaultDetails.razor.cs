@@ -252,7 +252,9 @@ namespace PasswordManager.Web.Components.Pages
             var encryptedData = await JSRuntime.InvokeAsync<string>(
                 "cryptoFunctions.encryptEntryData",
                 "vaultEntryTitleInput",
-                "vaultEntryUsernameInput"
+                "vaultEntryUsernameInput",
+                "vaultEntryCommentInput",
+                "vaultEntryUrlInput"
             );
 
             var encryptedPassword = await JSRuntime.InvokeAsync<string>(
@@ -299,6 +301,8 @@ namespace PasswordManager.Web.Components.Pages
                     "vaultEntryTitleInput",
                     "vaultEntryUsernameInput",
                     "vaultEntryPasswordInput",
+                    "vaultEntryCommentInput",
+                    "vaultEntryUrlInput",
                     userEmail
                 );
 

@@ -30,14 +30,15 @@ public partial class ModalCreateOrUpdateVaultEntry : ComponentBase
             && Mode == VaultEntryModalMode.Edit
             && !string.IsNullOrEmpty(Entry.EncryptedData))
         {
+            // Appel JS pour déchiffrer et remplir les champs
             await JS.InvokeVoidAsync(
                 "cryptoFunctions.decryptAndFillEditModal",
                 Entry.EncryptedData,
                 "vaultEntryTitleInput",
-                "vaultEntryUsernameInput"
+                "vaultEntryUsernameInput",
+                "vaultEntryCommentInput",
+                "vaultEntryUrlInput"
             );
-            // Appel JS pour déchiffrer et remplir les champs
-            await JS.InvokeVoidAsync("cryptoFunctions.decryptAndFillEditModal", Entry.EncryptedData, "vaultEntryTitleInput", "vaultEntryUsernameInput");
         }
     }
 

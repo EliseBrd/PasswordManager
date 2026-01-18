@@ -28,6 +28,13 @@
 
 .btnHistory{
     color: white;
+    background-color: goldenrod; /* Cyan / Info color */
+    border-color: goldenrod;
+}
+
+.btnHistory:hover {
+    background-color: goldenrod;
+    border-color: goldenrod;
 }
 
 .vaultEntries {

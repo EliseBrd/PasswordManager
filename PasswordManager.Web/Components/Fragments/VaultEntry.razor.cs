@@ -24,6 +24,8 @@ public partial class VaultEntry : ComponentBase
     private string TitleId => $"title-{Identifier}";
     private string UsernameId => $"username-{Identifier}";
     private string PasswordId => $"password-{Identifier}";
+    private string CommentId => $"comment-{Identifier}";
+    private string UrlId => $"url-{Identifier}";
     
     // Pour détecter les changements
     private string? _lastEncryptedData;
@@ -41,7 +43,14 @@ public partial class VaultEntry : ComponentBase
         {
             _lastEncryptedData = EncryptedData;
             // Appel JS pour déchiffrer et remplir les champs
-            await JS.InvokeVoidAsync("cryptoFunctions.decryptAndFillEntry", EncryptedData, TitleId, UsernameId);
+            await JS.InvokeVoidAsync(
+                "cryptoFunctions.decryptAndFillEntry", 
+                EncryptedData, 
+                TitleId, 
+                UsernameId,
+                CommentId,
+                UrlId
+            );
         }
     }
     
@@ -87,11 +96,4 @@ public partial class VaultEntry : ComponentBase
     {
         await OnAskEdit.InvokeAsync(Identifier);
     }
-
-    private string CategoryIcon => Category?.ToLower() switch
-    {
-        "personnel" => "fa-solid fa-lock",
-        "partagé" => "fa-solid fa-users",
-        _ => "fa-solid fa-tag"
-    };
 }
